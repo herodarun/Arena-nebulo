@@ -87,7 +87,6 @@ body.combo-border {
     border-radius: 20px;
     border: 1px solid rgba(100, 200, 255, 0.2);
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
 }
 
 /* Start Screen */
@@ -720,7 +719,6 @@ body.combo-border {
     width: min(23rem, calc(100vw - 2rem));
     transform: translateX(-50%);
     pointer-events: none;
-    filter: drop-shadow(0 0 8px rgba(220, 244, 255, 0.12));
 }
 
 .xp-meta {
@@ -763,9 +761,7 @@ body.combo-border {
     place-items: center;
     overflow-y: auto;
     padding: 2rem;
-    background: rgba(2, 5, 14, 0.78);
-    backdrop-filter: blur(9px);
-    -webkit-backdrop-filter: blur(9px);
+    background: radial-gradient(ellipse at 50% 45%, rgba(18, 34, 58, 0.48), rgba(2, 5, 14, 0.92) 78%);
 }
 
 .upgrade-panel {
