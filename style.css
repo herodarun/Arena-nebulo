@@ -1,0 +1,710 @@
+/* ========================================
+   NEBULA DRIFT — Stylesheet
+   ======================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    background: #000;
+    font-family: 'Rajdhani', sans-serif;
+    color: #fff;
+    cursor: crosshair;
+    user-select: none;
+}
+
+canvas {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+}
+
+/* ========================================
+   EFFECTS (Damage, Flash, Border Glow)
+   ======================================== */
+.damage-vignette {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.6);
+    pointer-events: none;
+    z-index: 10;
+    animation: pulseDamage 1s infinite alternate;
+}
+
+.screen-flash {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: white;
+    pointer-events: none;
+    z-index: 90;
+    opacity: 0;
+    transition: opacity 0.1s;
+}
+
+.screen-flash.flash-white { background: white; opacity: 0.8; }
+.screen-flash.flash-color { opacity: 0.5; }
+
+body.combo-border {
+    box-shadow: inset 0 0 50px rgba(100, 200, 255, 0.5);
+}
+
+@keyframes pulseDamage {
+    from { box-shadow: inset 0 0 100px rgba(255, 0, 0, 0.4); }
+    to { box-shadow: inset 0 0 200px rgba(255, 0, 0, 0.8); }
+}
+
+/* ========================================
+   SCREENS
+   ======================================== */
+.screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.6s ease;
+}
+
+.screen.hidden { display: none; }
+.hidden { display: none !important; }
+
+.screen-content {
+    text-align: center;
+    padding: 3rem;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 20px;
+    border: 1px solid rgba(100, 200, 255, 0.2);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+}
+
+/* Start Screen */
+.game-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 6rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0.15em;
+    text-shadow:
+        0 0 20px rgba(100, 200, 255, 0.5),
+        0 0 60px rgba(100, 200, 255, 0.3);
+    margin-bottom: 1rem;
+    animation: titlePulse 3s ease-in-out infinite;
+}
+
+.accent {
+    background: linear-gradient(135deg, #00d4ff, #7b2ff7, #ff2ecb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(123, 47, 247, 0.5));
+}
+
+.accent-red {
+    background: linear-gradient(135deg, #ff4444, #ff2ecb, #ff8800);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(255, 68, 68, 0.5));
+}
+
+.subtitle {
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 3rem;
+}
+
+/* Mode Select */
+.mode-select {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.mode-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.8rem 1.8rem;
+    border: 1px solid rgba(100, 200, 255, 0.3);
+    border-radius: 30px;
+    background: rgba(100, 200, 255, 0.05);
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mode-btn:hover {
+    border-color: rgba(100, 200, 255, 0.8);
+    color: #fff;
+    background: rgba(100, 200, 255, 0.15);
+}
+
+.mode-btn.active {
+    border-color: #00d4ff;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.25), rgba(123, 47, 247, 0.25));
+    color: #fff;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+}
+
+/* Network Radmin Panel */
+.net-panel {
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    animation: fadeIn 0.4s ease;
+}
+
+.net-status {
+    font-size: 0.9rem;
+    color: #64c8ff;
+    letter-spacing: 0.1em;
+    background: rgba(100, 200, 255, 0.08);
+    padding: 0.5rem 1.2rem;
+    border-radius: 20px;
+    border: 1px solid rgba(100, 200, 255, 0.2);
+}
+
+.net-box {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    border: 1px solid rgba(100, 200, 255, 0.2);
+}
+
+.net-option {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    align-items: center;
+}
+
+.net-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 0.15em;
+}
+
+.net-divider {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.3);
+    font-weight: 700;
+}
+
+.btn-net {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.6rem 1.4rem;
+    border: 1px solid rgba(0, 212, 255, 0.4);
+    border-radius: 8px;
+    background: rgba(0, 212, 255, 0.1);
+    color: #64c8ff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-net:hover {
+    background: rgba(0, 212, 255, 0.25);
+    color: #fff;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+.btn-copy {
+    background: none;
+    border: none;
+    color: #64c8ff;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
+
+.room-display {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.room-code {
+    color: #ffcc00;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+.join-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.net-input {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(100, 200, 255, 0.3);
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    outline: none;
+}
+
+.net-input:focus {
+    border-color: #00d4ff;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+}
+
+/* Controls Info */
+.controls-info {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 3rem;
+}
+
+.control-group {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.group-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-right: 0.5rem;
+}
+
+.control-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.key {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(100, 200, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(100, 200, 255, 0.05);
+    color: #64c8ff;
+    letter-spacing: 0.1em;
+}
+
+.label {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+/* Play Button */
+.btn-play {
+    position: relative;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    padding: 1.1rem 3.5rem;
+    border: 2px solid rgba(100, 200, 255, 0.4);
+    border-radius: 50px;
+    background: linear-gradient(135deg, rgba(100, 200, 255, 0.1), rgba(123, 47, 247, 0.1));
+    color: #fff;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.btn-play:hover {
+    border-color: rgba(100, 200, 255, 0.8);
+    background: linear-gradient(135deg, rgba(100, 200, 255, 0.2), rgba(123, 47, 247, 0.2));
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(100, 200, 255, 0.3);
+}
+
+.btn-play:active { transform: scale(0.98); }
+
+.btn-glow {
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(100, 200, 255, 0.15) 0%, transparent 60%);
+    animation: btnGlow 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* ========================================
+   HUD
+   ======================================== */
+.hud {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.5rem 2.5rem;
+    z-index: 50;
+    pointer-events: none;
+    animation: slideDown 0.5s ease;
+}
+
+.hud-left, .hud-center, .hud-right {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.hud-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.hud-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.hud-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 15px rgba(100, 200, 255, 0.4);
+    transition: color 0.3s;
+}
+
+.score-glow {
+    color: #ffcc00 !important;
+    text-shadow: 0 0 20px rgba(255, 204, 0, 0.8) !important;
+    animation: goldPulse 1s infinite alternate;
+}
+
+/* Bars */
+.energy-bar, .powerup-bar, .boss-bar {
+    width: 140px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 4px;
+    border: 1px solid rgba(100, 200, 255, 0.15);
+}
+
+.boss-bar { width: 300px; border-color: rgba(255, 68, 68, 0.4); margin-bottom: 20px;}
+
+.energy-fill {
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, #00d4ff, #7b2ff7, #ff2ecb);
+    transition: width 0.1s linear;
+}
+.powerup-fill {
+    width: 100%; height: 100%;
+    background: #fff;
+    transition: width 0.1s linear;
+}
+.boss-fill {
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, #ff0000, #ff8800);
+    transition: width 0.1s linear;
+}
+
+/* Shield Icons */
+.shield-icons {
+    display: flex; gap: 6px; margin-top: 4px;
+}
+.shield-icon {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: radial-gradient(circle, #00d4ff, #0088cc);
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+    transition: all 0.3s ease;
+}
+.shield-icon.lost { background: rgba(255, 255, 255, 0.1); box-shadow: none; }
+
+.mute-btn {
+    pointer-events: auto;
+    background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white;
+    opacity: 0.5; transition: opacity 0.2s;
+}
+.mute-btn:hover { opacity: 1; }
+
+/* ========================================
+   WAVE ANNOUNCEMENT
+   ======================================== */
+.wave-announce {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 80; pointer-events: none;
+}
+.wave-text {
+    font-family: 'Orbitron', sans-serif; font-size: 4rem; font-weight: 900;
+    letter-spacing: 0.2em; color: #fff;
+    text-shadow: 0 0 30px rgba(100, 200, 255, 0.6), 0 0 80px rgba(123, 47, 247, 0.4);
+    animation: waveIn 2s ease forwards;
+}
+
+/* ========================================
+   GAME OVER
+   ======================================== */
+.gameover-title {
+    font-family: 'Orbitron', sans-serif; font-size: 4rem; font-weight: 900;
+    line-height: 1.1; letter-spacing: 0.1em; margin-bottom: 2.5rem;
+}
+.final-stats {
+    display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2.5rem;
+    padding: 1.5rem 2rem; border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; }
+.stat-row.best-row { border-top: 1px solid rgba(255, 200, 0, 0.15); padding-top: 0.8rem; margin-top: 0.3rem; }
+.stat-label { font-size: 1rem; color: rgba(255, 255, 255, 0.5); letter-spacing: 0.05em; }
+.stat-value { font-family: 'Orbitron', sans-serif; font-size: 1.3rem; font-weight: 700; color: #64c8ff; }
+.best-row .stat-value { color: #ffc800; text-shadow: 0 0 15px rgba(255, 200, 0, 0.4); }
+
+.pause-title {
+    font-family: 'Orbitron', sans-serif; font-size: 4rem; font-weight: 900;
+    letter-spacing: 0.3em; text-shadow: 0 0 30px rgba(100, 200, 255, 0.4); margin-bottom: 1rem;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes titlePulse { 0%, 100% { text-shadow: 0 0 20px rgba(100, 200, 255, 0.5); } 50% { text-shadow: 0 0 40px rgba(100, 200, 255, 0.7); } }
+@keyframes btnGlow { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(180deg); } }
+@keyframes waveIn { 0% { opacity: 0; transform: scale(0.5); letter-spacing: 1em; } 20% { opacity: 1; transform: scale(1.05); } 30% { transform: scale(1); } 70% { opacity: 1; } 100% { opacity: 0; transform: scale(1.2); letter-spacing: 0.5em; } }
+@keyframes goldPulse { from { filter: brightness(1); } to { filter: brightness(1.5); } }
+
+/* ========================================
+   MULTIPLAYER NETWORK PANEL
+   ======================================== */
+.conn-type-select {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.ip-input-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.ip-input {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(100, 200, 255, 0.3);
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    outline: none;
+    width: 200px;
+}
+
+.ip-input:focus {
+    border-color: #00d4ff;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+}
+
+.ip-port-input {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    padding: 0.6rem 0.5rem;
+    border-radius: 8px;
+    border: 1px solid rgba(100, 200, 255, 0.3);
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    outline: none;
+    width: 70px;
+}
+
+.ip-port-input:focus {
+    border-color: #00d4ff;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+}
+
+.net-status-hud {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 60;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    border: 1px solid rgba(100, 200, 255, 0.2);
+}
+
+.net-status-hud .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.net-status-hud .status-dot.connected {
+    background: #00ff00;
+    box-shadow: 0 0 8px #00ff00;
+}
+
+.net-status-hud .status-dot.connecting {
+    background: #ffcc00;
+    box-shadow: 0 0 8px #ffcc00;
+    animation: pulseDamage 1s infinite alternate;
+}
+
+.net-status-hud .status-dot.disconnected {
+    background: #ff0000;
+    box-shadow: 0 0 8px #ff0000;
+}
+
+.net-status-hud .ping-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    color: #fff;
+}
+
+.conn-status {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    color: #fff;
+    margin-top: 0.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+.reconnect-banner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 136, 0, 0.8);
+    color: #fff;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    z-index: 100;
+    border: 1px solid #ffcc00;
+    box-shadow: 0 0 20px rgba(255, 136, 0, 0.5);
+    animation: titlePulse 2s infinite;
+}
+
+.net-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.net-tab {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.net-tab:hover {
+    color: #fff;
+}
+
+.net-tab.active {
+    color: #00d4ff;
+    border-bottom: 2px solid #00d4ff;
+}
+
+.net-tab-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+.btn-copy-ip {
+    background: rgba(100, 200, 255, 0.1);
+    border: 1px solid rgba(100, 200, 255, 0.3);
+    color: #00d4ff;
+    cursor: pointer;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.2s ease;
+}
+
+.btn-copy-ip:hover {
+    background: rgba(100, 200, 255, 0.2);
+    border-color: #00d4ff;
+}
+
+.server-info {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(123, 47, 247, 0.4);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.server-ip {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    color: #ffcc00;
+    margin: 0.5rem 0;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+@media (max-width: 768px) {
+    .game-title { font-size: 3.5rem; }
+    .controls-info { flex-direction: column; gap: 1.5rem; }
+    .hud { padding: 1rem 1.5rem; }
+    .hud-value { font-size: 1.2rem; }
+    .gameover-title { font-size: 2.8rem; }
+    .wave-text { font-size: 2.5rem; }
+    .net-box { flex-direction: column; padding: 1rem; }
+    .ip-input-group { flex-direction: column; }
+    .ip-input { width: 100%; }
+}

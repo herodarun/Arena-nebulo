@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebula Drift — Космическая Аркада</title>
+    <meta name="description" content="Nebula Drift — космическая аркада с онлайн мультиплеером для любых провайдеров и серых IP.">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- MQTT over WebSockets for Grey IPs & Cloudflare Pages -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <!-- Screen Effects -->
+    <div id="damageVignette" class="damage-vignette hidden"></div>
+    <div id="screenFlash" class="screen-flash hidden"></div>
+
+    <!-- Reconnect Banner -->
+    <div id="reconnectBanner" class="reconnect-banner hidden">
+        <span class="reconnect-spinner"></span>
+        <span id="reconnectText">Переподключение...</span>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="startScreen" class="screen">
+        <div class="screen-content">
+            <h1 class="game-title">NEBULA<br><span class="accent">DRIFT</span></h1>
+            <p class="subtitle">Пронесись сквозь космос с другом в онлайне</p>
+            
+            <div class="mode-select">
+                <button id="mode1P" class="mode-btn active">👤 1 ИГРОК</button>
+                <button id="mode2P" class="mode-btn">👥 2 ИГРОКА (1 ПК)</button>
+                <button id="modeNet" class="mode-btn">🌐 ОНЛАЙН МУЛЬТИПЛЕЕР</button>
+            </div>
+
+            <!-- Network Setup Panel -->
+            <div class="net-panel hidden" id="netPanel">
+                <div class="net-status" id="netStatus">🔴 Выберите способ подключения</div>
+                
+                <!-- Connection Type Tabs -->
+                <div class="net-tabs">
+                    <button class="net-tab active" id="tabPeer" data-tab="peer">⚡ P2P Прямое (Рекомендуется)</button>
+                    <button class="net-tab" id="tabCloud" data-tab="cloud">☁️ Cloud WSS (Серые IP / fallback)</button>
+                    <button class="net-tab" id="tabWS" data-tab="ws">🖥️ Локальный WS (Radmin)</button>
+                </div>
+
+                <!-- PeerJS Tab Content (DEFAULT — fastest, direct WebRTC P2P) -->
+                <div class="net-tab-content" id="tabContentPeer">
+                    <div class="net-box">
+                        <div class="net-option">
+                            <span class="net-title">СОЗДАТЬ КОМНАТУ (ХОСТ)</span>
+                            <button id="hostBtn" class="btn-net active">СФОРМИРОВАТЬ КОД</button>
+                            <div class="room-display hidden" id="roomDisplay">
+                                Код комнаты: <span id="roomCode" class="room-code">----</span>
+                                <button id="copyCodeBtn" class="btn-copy">📋 Копировать</button>
+                            </div>
+                        </div>
+                        <div class="net-divider">ИЛИ</div>
+                        <div class="net-option">
+                            <span class="net-title">ПРИСОЕДИНИТЬСЯ К ХОСТУ</span>
+                            <div class="join-row">
+                                <input type="text" id="joinInput" placeholder="Код комнаты (напр. ND-8291)" class="net-input" style="text-transform: uppercase;">
+                                <button id="joinBtn" class="btn-net active">ПОДКЛЮЧИТЬСЯ</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="net-hint">⚡ Прямое P2P через WebRTC — минимальный пинг 10–50ms. Если не работает (корпоративный NAT/VPN) — используй Cloud WSS ☁️</div>
+                </div>
+
+                <!-- Cloud WSS Tab Content (fallback for blocked WebRTC) -->
+                <div class="net-tab-content hidden" id="tabContentCloud">
+                    <div class="net-box">
+                        <div class="net-option">
+                            <span class="net-title">СОЗДАТЬ КОМНАТУ (ХОСТ)</span>
+                            <button id="cloudHostBtn" class="btn-net active">СФОРМИРОВАТЬ КОД КОМНАТЫ</button>
+                            <div class="room-display hidden" id="cloudRoomDisplay">
+                                Код: <span id="cloudRoomCode" class="room-code">----</span>
+                                <button id="cloudCopyCodeBtn" class="btn-copy">📋 Копировать</button>
+                            </div>
+                        </div>
+                        <div class="net-divider">ИЛИ</div>
+                        <div class="net-option">
+                            <span class="net-title">ПРИСОЕДИНИТЬСЯ К ХОСТУ</span>
+                            <div class="join-row">
+                                <input type="text" id="cloudJoinInput" placeholder="Код комнаты (напр. ND-8291)" class="net-input" style="text-transform: uppercase;">
+                                <button id="cloudJoinBtn" class="btn-net active">ПОДКЛЮЧИТЬСЯ</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="net-hint">☁️ Cloud WSS через MQTT — работает за любым NAT и серыми IP. Пинг выше (~100–300ms), но надёжно.</div>
+                </div>
+
+                <!-- WebSocket Tab Content -->
+                <div class="net-tab-content hidden" id="tabContentWS">
+                    <div class="net-box">
+                        <div class="net-option">
+                            <span class="net-title">СОЗДАТЬ КОМНАТУ (ХОСТ)</span>
+                            <div class="ip-input-group">
+                                <input type="text" id="wsIpInput" placeholder="IP (авто)" class="ip-input" readonly>
+                                <span class="ip-separator">:</span>
+                                <input type="text" id="wsPortInput" value="3000" class="ip-port-input">
+                            </div>
+                            <button id="wsHostBtn" class="btn-net">СОЗДАТЬ КОМНАТУ</button>
+                            <div class="room-display hidden" id="wsRoomDisplay">
+                                Код: <span id="wsRoomCode" class="room-code">----</span>
+                                <button id="wsCopyCodeBtn" class="btn-copy">📋</button>
+                            </div>
+                            <div class="server-info hidden" id="serverInfo">
+                                <span class="server-info-label">Друг подключается к:</span>
+                                <span class="server-ip" id="serverIpDisplay">--</span>
+                            </div>
+                        </div>
+                        <div class="net-divider">ИЛИ</div>
+                        <div class="net-option">
+                            <span class="net-title">ПРИСОЕДИНИТЬСЯ К ХОСТУ</span>
+                            <div class="ip-input-group">
+                                <input type="text" id="wsJoinIpInput" placeholder="IP хоста (26.x.x.x)" class="ip-input">
+                                <span class="ip-separator">:</span>
+                                <input type="text" id="wsJoinPortInput" value="3000" class="ip-port-input">
+                            </div>
+                            <div class="join-row">
+                                <input type="text" id="wsJoinCodeInput" placeholder="Код комнаты (ND-XXXX)" class="net-input">
+                                <button id="wsJoinBtn" class="btn-net active">ПОДКЛЮЧИТЬСЯ</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="net-hint">🖥️ Локальный WebSocket — нужен <code>node server.js</code> и Radmin VPN на ПК хоста.</div>
+                </div>
+            </div>
+
+
+
+            <div class="controls-info" id="controls1P">
+                <div class="control-item">
+                    <span class="key">W A S D</span>
+                    <span class="label">Движение</span>
+                </div>
+                <div class="control-item">
+                    <span class="key">ЛКМ / ПРОБЕЛ</span>
+                    <span class="label">Огонь</span>
+                </div>
+                <div class="control-item">
+                    <span class="key">SHIFT</span>
+                    <span class="label">Ускорение</span>
+                </div>
+            </div>
+
+            <div class="controls-info hidden" id="controls2P">
+                <div class="control-group">
+                    <div class="group-title" style="color: #64c8ff;">ИГРОК 1</div>
+                    <div class="control-item"><span class="key">W A S D</span><span class="label">Руль</span></div>
+                    <div class="control-item"><span class="key">ПРОБЕЛ</span><span class="label">Огонь</span></div>
+                    <div class="control-item"><span class="key">L-SHIFT</span><span class="label">Буст</span></div>
+                </div>
+                <div class="control-group">
+                    <div class="group-title" style="color: #ff7700;">ИГРОК 2</div>
+                    <div class="control-item"><span class="key">↑ ↓ ← →</span><span class="label">Руль</span></div>
+                    <div class="control-item"><span class="key">ENTER / NUM 0</span><span class="label">Огонь</span></div>
+                    <div class="control-item"><span class="key">R-SHIFT</span><span class="label">Буст</span></div>
+                </div>
+            </div>
+
+            <button id="startBtn" class="btn-play">
+                <span class="btn-text">ЗАПУСК</span>
+                <span class="btn-glow"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud" class="hud hidden">
+        <div class="hud-left">
+            <div class="hud-item" id="scoreDisplay">
+                <span class="hud-label">ОЧКИ</span>
+                <span class="hud-value" id="scoreValue">0</span>
+            </div>
+            <div class="hud-item" id="comboDisplay">
+                <span class="hud-label">КОМБО</span>
+                <span class="hud-value" id="comboValue">x1</span>
+            </div>
+            <div class="hud-item" id="killsDisplay">
+                <span class="hud-label">УНИЧТОЖЕНО</span>
+                <span class="hud-value" id="killsValue">0</span>
+            </div>
+        </div>
+        
+        <div class="hud-center">
+            <div class="hud-item" id="waveDisplay">
+                <span class="hud-label">ВОЛНА</span>
+                <span class="hud-value" id="waveValue">1</span>
+            </div>
+            <div class="hud-item hidden" id="powerupDisplay">
+                <span class="hud-label" id="powerupLabel">УСИЛЕНИЕ</span>
+                <div class="powerup-bar">
+                    <div class="powerup-fill" id="powerupFill"></div>
+                </div>
+            </div>
+            <div class="hud-item hidden" id="bossDisplay">
+                <span class="hud-label" style="color:#ff4444;">БОСС</span>
+                <div class="boss-bar">
+                    <div class="boss-fill" id="bossFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hud-right">
+            <div class="hud-item">
+                <button id="muteBtn" class="mute-btn">🔊</button>
+            </div>
+            <div class="hud-item" id="p1EnergyBox">
+                <span class="hud-label" id="p1Label">P1 ЭНЕРГИЯ</span>
+                <div class="energy-bar">
+                    <div class="energy-fill" id="energyFill"></div>
+                </div>
+            </div>
+            <div class="hud-item hidden" id="p2EnergyBox">
+                <span class="hud-label" style="color: #ff7700;">P2 ЭНЕРГИЯ</span>
+                <div class="energy-bar">
+                    <div class="energy-fill" id="p2EnergyFill" style="background: linear-gradient(90deg, #ff7700, #ff0055);"></div>
+                </div>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">ЩИТЫ</span>
+                <div class="shield-icons" id="shieldIcons"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Status HUD (shows during gameplay) -->
+    <div id="netStatusHud" class="net-status-hud hidden">
+        <div class="status-dot connecting" id="netDot"></div>
+        <span class="ping-value" id="pingValue">--ms</span>
+        <span class="net-role" id="netRoleLabel"></span>
+    </div>
+
+    <!-- Wave Announcement -->
+    <div id="waveAnnounce" class="wave-announce hidden">
+        <span class="wave-text">ВОЛНА <span id="waveAnnounceNum">1</span></span>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="screen hidden">
+        <div class="screen-content">
+            <h2 class="gameover-title">МИССИЯ<br><span class="accent-red">ЗАВЕРШЕНА</span></h2>
+            <div class="final-stats">
+                <div class="stat-row">
+                    <span class="stat-label">Очки</span>
+                    <span class="stat-value" id="finalScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Волна</span>
+                    <span class="stat-value" id="finalWave">1</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Макс. комбо</span>
+                    <span class="stat-value" id="finalCombo">x1</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Уничтожено</span>
+                    <span class="stat-value" id="finalKills">0</span>
+                </div>
+                <div class="stat-row best-row">
+                    <span class="stat-label">🏆 Лучший результат</span>
+                    <span class="stat-value" id="bestScore">0</span>
+                </div>
+            </div>
+            <button class="btn-play" id="restartBtn">
+                <span class="btn-text">ЕЩЁ РАЗ</span>
+                <span class="btn-glow"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Pause Overlay -->
+    <div id="pauseOverlay" class="screen hidden">
+        <div class="screen-content">
+            <h2 class="game-title">ПАУЗА</h2>
+            <p class="subtitle">Нажмите ESC чтобы продолжить</p>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
