@@ -1,10 +1,11 @@
 'use strict';
 
-// Medium is the game's normal look. Low only trims rendering effects; the
-// ship and asteroid paths remain the same at every quality level.
+// Medium is the game's normal look. Low renders the same shapes at reduced
+// resolution and trims effects; models remain unchanged at every quality level.
 const GRAPHICS_PRESETS = Object.freeze({
     low: Object.freeze({
         label: 'Низкое',
+        renderScale: 0.62,
         starCount: 250,
         nebulaCount: 7,
         backdropInterval: 4,
@@ -25,6 +26,7 @@ const GRAPHICS_PRESETS = Object.freeze({
     }),
     medium: Object.freeze({
         label: 'Среднее',
+        renderScale: 0.84,
         starCount: 300,
         nebulaCount: 8,
         backdropInterval: 3,
@@ -45,6 +47,7 @@ const GRAPHICS_PRESETS = Object.freeze({
     }),
     high: Object.freeze({
         label: 'Высокое',
+        renderScale: 1,
         starCount: 360,
         nebulaCount: 10,
         backdropInterval: 2,
@@ -85,6 +88,11 @@ function getGraphicsPreset() {
     return GRAPHICS_PRESETS[graphicsQuality] || GRAPHICS_PRESETS.medium;
 }
 
+function getCanvasRenderScale() {
+    const scale = getGraphicsPreset().renderScale;
+    return Math.max(0.5, Math.min(1, Number.isFinite(scale) ? scale : 1));
+}
+
 function refreshGraphicsSettingsUI() {
     const overlay = document.getElementById('graphicsSettingsOverlay');
     if (!overlay) return;
@@ -98,7 +106,7 @@ function refreshGraphicsSettingsUI() {
     const note = document.getElementById('graphicsQualityNote');
     if (note) {
         if (graphicsQuality === 'low') {
-            note.textContent = 'Меньше неоновых эффектов и частиц. Форма корабля и астероидов не меняется.';
+            note.textContent = 'Меньше неона и частиц, рендер легче. Силуэты корабля и астероидов не меняются.';
         } else if (graphicsQuality === 'high') {
             note.textContent = 'Дополнительные детали окружения и эффекты. Модели остаются прежними.';
         } else {
@@ -120,11 +128,18 @@ function setGraphicsQuality(quality) {
     }
 
     if (changed) {
+        // The logical canvas size stays constant; only its backing resolution changes.
+        resizeCanvas();
         // Rebuild only the decorative background. Gameplay entities and models
         // are untouched, including in network games.
         initStars();
         initNebula();
         backdropFrame = 0;
+        if (gameState === STATE.PAUSED) {
+            ctx.save();
+            draw();
+            ctx.restore();
+        }
     }
     refreshGraphicsSettingsUI();
 }
@@ -232,8 +247,9 @@ function compactAsteroidsToViewport() {
     asteroids.length = writeIndex;
 }
 
-// Keep the simulation at 60 updates per second even on high-refresh displays,
-// and only touch the DOM HUD a few times per second.
+// Cap simulation work to one fixed update per rendered frame. Catch-up batches
+// made slow machines fall further behind because each missed frame multiplied
+// the full entity, collision, and network update cost.
 const GAME_FRAME_INTERVAL = 1000 / 60;
 let lastGameFrameTimestamp = 0;
 let gameFrameNumber = 0;
@@ -269,6 +285,7 @@ function optimizedGameLoop(timestamp) {
 
 function connectGraphicsSettings() {
     document.documentElement.dataset.graphicsQuality = graphicsQuality;
+    resizeCanvas();
     connectGraphicsSettingsUI();
     refreshGraphicsSettingsUI();
     initStars();

@@ -85,14 +85,46 @@ function constrainPlayerToWorld(player) {
 
 function drawCameraWorldBoundary() {
     if (!isCameraWorldActive()) return;
+
     const bounds = getGameWorldBounds();
+    const viewLeft = cameraX;
+    const viewTop = cameraY;
+    const viewRight = viewLeft + canvas.width;
+    const viewBottom = viewTop + canvas.height;
+    const atLeftEdge = viewLeft <= 1;
+    const atTopEdge = viewTop <= 1;
+    const atRightEdge = viewRight >= bounds.width - 1;
+    const atBottomEdge = viewBottom >= bounds.height - 1;
+
+    // Most of the map border is offscreen. Skip its large, blurred rectangle;
+    // draw only the short edge segments that can actually be seen.
+    if (!atLeftEdge && !atTopEdge && !atRightEdge && !atBottomEdge) return;
 
     ctx.save();
     ctx.strokeStyle = 'rgba(100, 201, 255, 0.36)';
     ctx.lineWidth = 2;
     ctx.shadowColor = 'rgba(63, 177, 255, 0.3)';
-    ctx.shadowBlur = 10;
-    ctx.strokeRect(1, 1, bounds.width - 2, bounds.height - 2);
+    ctx.shadowBlur = getGraphicsPreset().laserGlow ? 5 : 0;
+    ctx.beginPath();
+
+    if (atLeftEdge) {
+        ctx.moveTo(1, Math.max(0, viewTop));
+        ctx.lineTo(1, Math.min(bounds.height, viewBottom));
+    }
+    if (atTopEdge) {
+        ctx.moveTo(Math.max(0, viewLeft), 1);
+        ctx.lineTo(Math.min(bounds.width, viewRight), 1);
+    }
+    if (atRightEdge) {
+        ctx.moveTo(bounds.width - 1, Math.max(0, viewTop));
+        ctx.lineTo(bounds.width - 1, Math.min(bounds.height, viewBottom));
+    }
+    if (atBottomEdge) {
+        ctx.moveTo(Math.max(0, viewLeft), bounds.height - 1);
+        ctx.lineTo(Math.min(bounds.width, viewRight), bounds.height - 1);
+    }
+
+    ctx.stroke();
     ctx.restore();
 }
 
