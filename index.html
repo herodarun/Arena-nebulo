@@ -35,6 +35,9 @@
                 <button id="mode2P" class="mode-btn">👥 2 ИГРОКА (1 ПК)</button>
                 <button id="modeNet" class="mode-btn">🌐 ОНЛАЙН МУЛЬТИПЛЕЕР</button>
             </div>
+            <button id="graphicsSettingsBtn" class="settings-menu-button" type="button" aria-haspopup="dialog">
+                <span aria-hidden="true">⚙</span> НАСТРОЙКИ ГРАФИКИ
+            </button>
 
             <!-- Network Setup Panel -->
             <div class="net-panel hidden" id="netPanel">
@@ -290,7 +293,35 @@
         <div class="screen-content">
             <h2 class="game-title">ПАУЗА</h2>
             <p class="subtitle">Нажмите ESC чтобы продолжить</p>
+            <button id="pauseGraphicsSettingsBtn" class="settings-menu-button pause-settings-button" type="button" aria-haspopup="dialog">
+                ⚙ НАСТРОЙКИ ГРАФИКИ
+            </button>
         </div>
+    </div>
+
+    <div id="graphicsSettingsOverlay" class="graphics-settings-overlay hidden" aria-hidden="true">
+        <section class="graphics-settings-panel" role="dialog" aria-modal="true" aria-labelledby="graphicsSettingsTitle">
+            <button id="closeGraphicsSettingsBtn" class="graphics-settings-close" type="button" aria-label="Закрыть настройки">×</button>
+            <span class="graphics-settings-kicker">СИСТЕМА РЕНДЕРА</span>
+            <h2 id="graphicsSettingsTitle">НАСТРОЙКИ ГРАФИКИ</h2>
+            <p class="graphics-settings-intro">Выбери режим под свой компьютер. Можно менять прямо во время паузы.</p>
+            <div class="graphics-quality-options" role="group" aria-label="Качество графики">
+                <button class="graphics-quality-card" type="button" data-graphics-quality="low" aria-pressed="false">
+                    <span class="quality-name">НИЗКОЕ</span>
+                    <span class="quality-description">Меньше неона и частиц, фон легче.</span>
+                </button>
+                <button class="graphics-quality-card is-selected" type="button" data-graphics-quality="medium" aria-pressed="true">
+                    <span class="quality-name">СРЕДНЕЕ</span>
+                    <span class="quality-description">Стандартная графика игры.</span>
+                </button>
+                <button class="graphics-quality-card" type="button" data-graphics-quality="high" aria-pressed="false">
+                    <span class="quality-name">ВЫСОКОЕ</span>
+                    <span class="quality-description">Больше деталей и частиц.</span>
+                </button>
+            </div>
+            <p id="graphicsQualityNote" class="graphics-quality-note">Форма корабля и астероидов не меняется ни в одном режиме.</p>
+            <button id="doneGraphicsSettingsBtn" class="graphics-settings-done" type="button">ГОТОВО</button>
+        </section>
     </div>
 
     <!-- Upgrade choice: appears at levels 2, 4, 6, ... -->
@@ -315,5 +346,6 @@
     </div>
 
     <script src="game.js"></script>
+    <script src="graphics-settings.js"></script>
 </body>
 </html>
