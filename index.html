@@ -194,6 +194,13 @@
             <div class="hud-item" id="waveDisplay">
                 <span class="hud-label">ВОЛНА</span>
                 <span class="hud-value" id="waveValue">1</span>
+                <div id="waveRunDetails" class="wave-run-details hidden">
+                    <span id="waveDifficultyBadge" class="wave-difficulty-badge">ОБЫЧНАЯ</span>
+                    <div class="wave-progress-track" aria-hidden="true">
+                        <div id="waveProgressFill" class="wave-progress-fill"></div>
+                    </div>
+                    <span id="waveProgressText" class="wave-progress-text">РАЗГОН ВОЛНЫ</span>
+                </div>
             </div>
             <div class="hud-item hidden" id="powerupDisplay">
                 <span class="hud-label" id="powerupLabel">УСИЛЕНИЕ</span>
@@ -285,7 +292,66 @@
                 <span class="btn-text">ЕЩЁ РАЗ</span>
                 <span class="btn-glow"></span>
             </button>
+            <button class="menu-return-button" id="gameOverShopBtn" type="button">В МАГАЗИН</button>
         </div>
+    </div>
+
+    <!-- Wave completion hub -->
+    <div id="waveClearScreen" class="screen hidden" aria-hidden="true">
+        <section class="screen-content progression-panel">
+            <span class="progression-kicker">СЕКТОР ЗАЧИЩЕН</span>
+            <h2 class="progression-title">ВОЛНА <span id="waveClearNumber">1</span><br><span class="accent">ПРОЙДЕНА</span></h2>
+            <div class="wave-result-grid">
+                <div><span>УНИЧТОЖЕНО</span><strong id="waveClearKills">0</strong></div>
+                <div><span>ОПЫТ ЗА ВОЛНУ</span><strong id="waveClearXp">0 XP</strong></div>
+                <div><span>СЛОЖНОСТЬ</span><strong id="waveClearDifficulty">ОБЫЧНАЯ</strong></div>
+            </div>
+            <p class="progression-note">Продолжи забег или вернись в ангар-магазин.</p>
+            <div class="progression-actions">
+                <button id="waveClearShopBtn" class="progression-button secondary" type="button">В МАГАЗИН</button>
+                <button id="continueWaveBtn" class="progression-button primary" type="button">ПРОДОЛЖИТЬ</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Weighted difficulty roulette before the next wave -->
+    <div id="rouletteScreen" class="screen hidden" aria-hidden="true">
+        <section class="screen-content progression-panel roulette-panel">
+            <span class="progression-kicker">СЛЕДУЮЩИЙ СЕКТОР</span>
+            <h2 class="progression-title roulette-title">РУЛЕТКА<br><span class="accent">СЛОЖНОСТИ</span></h2>
+            <div class="roulette-display" aria-live="polite">
+                <div class="roulette-orbit" aria-hidden="true"><span></span></div>
+                <strong id="rouletteCurrent">ГОТОВИМСЯ</strong>
+            </div>
+            <div class="roulette-odds" aria-label="Шансы сложностей">
+                <span class="odds-easy">ЛЁГКАЯ <b>10%</b></span>
+                <span class="odds-normal">ОБЫЧНАЯ <b>70%</b></span>
+                <span class="odds-hard">СЛОЖНАЯ <b>15%</b></span>
+                <span class="odds-impossible">НЕВОЗМОЖНАЯ <b>5%</b></span>
+            </div>
+            <p id="rouletteResultNote" class="progression-note">Сложная и невозможная вместе выпадают в 20% случаев.</p>
+            <button id="startRolledWaveBtn" class="progression-button primary hidden" type="button">ВЫХОД НА ВОЛНУ</button>
+        </section>
+    </div>
+
+    <!-- Placeholder meta shop; XP is recorded but not spent yet. -->
+    <div id="shopScreen" class="screen hidden" aria-hidden="true">
+        <section class="screen-content progression-panel shop-panel">
+            <span class="progression-kicker">АНГАР · МЕЖДУ ЗАБЕГАМИ</span>
+            <h2 class="progression-title">МАГАЗИН<br><span class="accent">ПИЛОТА</span></h2>
+            <div class="shop-records">
+                <div class="shop-record-card">
+                    <span>МАКС. ВОЛНА</span>
+                    <strong id="metaMaxWave">0</strong>
+                </div>
+                <div class="shop-record-card">
+                    <span>ОПЫТ</span>
+                    <strong id="metaCareerXp">0 XP</strong>
+                </div>
+            </div>
+            <p class="progression-note">Опыт сохраняется. Покупки и улучшения в магазине появятся позже.</p>
+            <button id="newRunBtn" class="progression-button primary new-run-button" type="button">НАЧАТЬ НОВЫЙ ЗАБЕГ</button>
+        </section>
     </div>
 
     <!-- Pause Overlay -->
@@ -348,5 +414,6 @@
     <script src="game.js"></script>
     <script src="graphics-settings.js"></script>
     <script src="boss-mechanics.js"></script>
+    <script src="wave-system.js"></script>
 </body>
 </html>

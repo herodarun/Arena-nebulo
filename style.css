@@ -1321,3 +1321,294 @@ html[data-graphics-quality="low"] .damage-vignette {
         font-size: 0.65rem;
     }
 }
+
+/* Wave-based incremental run flow */
+.wave-run-details {
+    display: flex;
+    width: min(11rem, 34vw);
+    flex-direction: column;
+    align-items: center;
+    gap: 0.22rem;
+    margin-top: 0.2rem;
+}
+
+.wave-difficulty-badge {
+    color: #b9e7ff;
+    font: 700 0.55rem 'Orbitron', sans-serif;
+    letter-spacing: 0.11em;
+}
+
+.wave-progress-track {
+    width: 100%;
+    height: 5px;
+    overflow: hidden;
+    border: 1px solid rgba(173, 224, 255, 0.25);
+    border-radius: 99px;
+    background: rgba(2, 8, 18, 0.8);
+}
+
+.wave-progress-fill {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #52d9ff, #a6f2ff);
+    box-shadow: 0 0 8px rgba(82, 217, 255, 0.5);
+    transition: width 180ms linear;
+}
+
+.wave-progress-text {
+    color: rgba(215, 232, 248, 0.58);
+    font: 600 0.48rem 'Orbitron', sans-serif;
+    letter-spacing: 0.07em;
+    white-space: nowrap;
+}
+
+.progression-panel {
+    width: min(43rem, calc(100vw - 2rem));
+    padding: clamp(1.35rem, 4vw, 3rem);
+    border: 1px solid rgba(145, 211, 255, 0.28);
+    background: linear-gradient(145deg, rgba(10, 20, 39, 0.97), rgba(4, 8, 19, 0.97));
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.64), 0 0 44px rgba(42, 144, 211, 0.12), inset 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.progression-kicker {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: rgba(177, 220, 250, 0.7);
+    font: 700 0.68rem 'Orbitron', sans-serif;
+    letter-spacing: 0.22em;
+}
+
+.progression-title {
+    margin: 0 0 1.4rem;
+    color: #f6fbff;
+    font: 900 clamp(2rem, 6vw, 3.7rem)/1.14 'Orbitron', sans-serif;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 22px rgba(100, 200, 255, 0.2);
+}
+
+.wave-result-grid,
+.shop-records {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin: 0 auto 1.15rem;
+}
+
+.wave-result-grid > div,
+.shop-record-card {
+    display: flex;
+    min-width: 0;
+    min-height: 5.25rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.8rem 0.5rem;
+    border: 1px solid rgba(152, 198, 232, 0.16);
+    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(25, 41, 64, 0.7), rgba(10, 17, 31, 0.8));
+}
+
+.wave-result-grid span,
+.shop-record-card span {
+    color: rgba(208, 225, 243, 0.54);
+    font: 700 0.55rem 'Orbitron', sans-serif;
+    letter-spacing: 0.09em;
+}
+
+.wave-result-grid strong,
+.shop-record-card strong {
+    color: #eaf8ff;
+    font: 800 clamp(0.88rem, 2.8vw, 1.15rem) 'Orbitron', sans-serif;
+}
+
+.progression-note {
+    max-width: 34rem;
+    margin: 0 auto 1.25rem;
+    color: rgba(218, 231, 245, 0.62);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.progression-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.progression-button,
+.menu-return-button {
+    position: relative;
+    min-height: 3.2rem;
+    padding: 0.9rem 1.45rem;
+    border: 1px solid rgba(177, 219, 248, 0.3);
+    border-radius: 11px;
+    background: rgba(18, 31, 50, 0.94);
+    color: #eaf6ff;
+    font: 700 0.78rem 'Orbitron', sans-serif;
+    letter-spacing: 0.09em;
+    cursor: pointer;
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.progression-button:hover,
+.progression-button:focus-visible,
+.menu-return-button:hover,
+.menu-return-button:focus-visible {
+    border-color: rgba(139, 221, 255, 0.8);
+    outline: none;
+    transform: translateY(-2px);
+}
+
+.progression-button.primary {
+    border-color: rgba(162, 232, 255, 0.7);
+    background: linear-gradient(135deg, #118eb4, #5a52bd 72%, #7745a4);
+    box-shadow: 0 7px 24px rgba(22, 147, 197, 0.2), inset 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.progression-button.primary:hover,
+.progression-button.primary:focus-visible {
+    box-shadow: 0 10px 30px rgba(22, 147, 197, 0.33), inset 0 1px rgba(255, 255, 255, 0.28);
+}
+
+.progression-button.secondary,
+.menu-return-button {
+    background: linear-gradient(145deg, rgba(19, 30, 47, 0.95), rgba(9, 15, 27, 0.95));
+}
+
+.menu-return-button {
+    display: block;
+    margin: 0.75rem auto 0;
+}
+
+.roulette-panel {
+    width: min(39rem, calc(100vw - 2rem));
+}
+
+.roulette-title { margin-bottom: 0.8rem; }
+
+.roulette-display {
+    position: relative;
+    display: grid;
+    width: min(15rem, 54vw);
+    aspect-ratio: 1;
+    place-items: center;
+    margin: 0 auto 1.15rem;
+    overflow: hidden;
+    border: 1px solid rgba(160, 221, 255, 0.28);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(36, 65, 93, 0.96) 0%, rgba(10, 20, 37, 0.98) 62%, rgba(4, 8, 17, 1) 100%);
+    box-shadow: inset 0 0 28px rgba(65, 179, 225, 0.14), 0 0 34px rgba(68, 170, 235, 0.1);
+}
+
+.roulette-display::before,
+.roulette-display::after {
+    position: absolute;
+    inset: 0.65rem;
+    border: 1px dashed rgba(131, 221, 255, 0.3);
+    border-radius: 50%;
+    content: '';
+}
+
+.roulette-display::after {
+    inset: 1.35rem;
+    border-style: solid;
+    border-color: rgba(157, 130, 255, 0.22);
+}
+
+.roulette-display strong {
+    position: relative;
+    z-index: 2;
+    padding: 0.4rem;
+    color: #f4fbff;
+    font: 900 clamp(0.92rem, 4vw, 1.25rem) 'Orbitron', sans-serif;
+    letter-spacing: 0.07em;
+    text-shadow: 0 0 16px rgba(99, 220, 255, 0.42);
+}
+
+.roulette-display strong[data-difficulty="easy"] { color: #8de3b4; }
+.roulette-display strong[data-difficulty="normal"] { color: #77dfff; }
+.roulette-display strong[data-difficulty="hard"] { color: #ffca74; }
+.roulette-display strong[data-difficulty="impossible"] { color: #ff8191; }
+
+.roulette-orbit {
+    position: absolute;
+    inset: 1.7rem;
+    border: 2px solid transparent;
+    border-top-color: #61e4ff;
+    border-right-color: rgba(123, 103, 255, 0.75);
+    border-radius: 50%;
+    animation: rouletteOrbit 1.15s linear infinite;
+}
+
+.roulette-orbit span {
+    position: absolute;
+    top: -0.35rem;
+    left: 50%;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background: #dffbff;
+    box-shadow: 0 0 12px #62ddff;
+    transform: translateX(-50%);
+}
+
+.roulette-display.is-stopped .roulette-orbit {
+    animation-play-state: paused;
+}
+
+.roulette-odds {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.42rem 0.8rem;
+    max-width: 22rem;
+    margin: 0 auto 0.9rem;
+    color: rgba(221, 235, 249, 0.7);
+    font: 700 0.62rem 'Orbitron', sans-serif;
+    letter-spacing: 0.04em;
+}
+
+.roulette-odds span { display: flex; justify-content: space-between; gap: 0.4rem; }
+.roulette-odds b { color: #fff; }
+.odds-easy b { color: #8de3b4; }
+.odds-normal b { color: #77dfff; }
+.odds-hard b { color: #ffca74; }
+.odds-impossible b { color: #ff8191; }
+
+.shop-records {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 1.2rem;
+}
+
+.shop-record-card {
+    min-height: 6rem;
+    border-color: rgba(99, 211, 255, 0.22);
+}
+
+.shop-record-card strong { font-size: clamp(1.2rem, 4vw, 1.8rem); }
+.new-run-button { margin-top: 0.2rem; }
+
+#gameOverScreen .menu-return-button { margin-top: 0.65rem; }
+
+@keyframes rouletteOrbit {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+    .progression-panel { width: calc(100vw - 1rem); padding: 1.25rem 0.85rem; }
+    .progression-kicker { font-size: 0.56rem; }
+    .wave-result-grid { gap: 0.35rem; }
+    .wave-result-grid > div { min-height: 4.6rem; padding: 0.55rem 0.25rem; }
+    .wave-result-grid span { font-size: 0.46rem; letter-spacing: 0.04em; }
+    .wave-result-grid strong { font-size: 0.75rem; }
+    .progression-actions { gap: 0.5rem; }
+    .progression-button { min-height: 2.9rem; padding: 0.8rem 0.85rem; font-size: 0.65rem; }
+    .wave-run-details { width: 8.5rem; }
+    .roulette-odds { font-size: 0.52rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .roulette-orbit { animation: none; }
+}
