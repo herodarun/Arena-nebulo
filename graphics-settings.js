@@ -218,11 +218,14 @@ function compactByPositiveField(items, field) {
 }
 
 function compactAsteroidsToViewport() {
+    const bounds = typeof getGameWorldBounds === 'function'
+        ? getGameWorldBounds()
+        : { width: canvas.width, height: canvas.height };
     let writeIndex = 0;
     for (let readIndex = 0; readIndex < asteroids.length; readIndex += 1) {
         const asteroid = asteroids[readIndex];
-        if (asteroid.x > -200 && asteroid.x < canvas.width + 200 &&
-            asteroid.y > -200 && asteroid.y < canvas.height + 200) {
+        if (asteroid.x > -200 && asteroid.x < bounds.width + 200 &&
+            asteroid.y > -200 && asteroid.y < bounds.height + 200) {
             asteroids[writeIndex++] = asteroid;
         }
     }

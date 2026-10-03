@@ -34,6 +34,12 @@ const BOSS_ARCHETYPES = Object.freeze({
 
 const BOSS_SEQUENCE = Object.freeze(['bulwark', 'hunter', 'singularity']);
 
+function getBossArenaBounds() {
+    return typeof getGameWorldBounds === 'function'
+        ? getGameWorldBounds()
+        : { width: canvas.width, height: canvas.height };
+}
+
 function getBossTarget() {
     let target = null;
     let nearestDistance = Infinity;
@@ -124,8 +130,9 @@ function updateBossHazards(delta) {
             }
         }
 
-        const outside = hazard.x < -120 || hazard.x > canvas.width + 120 ||
-            hazard.y < -120 || hazard.y > canvas.height + 120;
+        const bounds = getBossArenaBounds();
+        const outside = hazard.x < -120 || hazard.x > bounds.width + 120 ||
+            hazard.y < -120 || hazard.y > bounds.height + 120;
         if (consumed || hazard.life <= 0 || outside) enemies.splice(index, 1);
     }
 }
@@ -172,7 +179,8 @@ function beginBossAttack() {
     } else {
         boss.fieldX = target.x;
         boss.fieldY = target.y;
-        boss.fieldRadius = Math.min(Math.max(canvas.width, canvas.height) * 0.36, 205 + boss.tier * 5);
+        const bounds = getBossArenaBounds();
+        boss.fieldRadius = Math.min(Math.max(bounds.width, bounds.height) * 0.36, 205 + boss.tier * 5);
         setBossAction('gravityTell', Math.max(34, 52 - boss.tier));
     }
 }
@@ -209,8 +217,9 @@ function updateBulwarkBoss(delta) {
 function updateHunterBoss(delta) {
     const canStrafe = boss.action !== 'chargeTell' && boss.action !== 'dash';
     if (canStrafe) {
+        const bounds = getBossArenaBounds();
         const minX = boss.radius + 24;
-        const maxX = Math.max(minX, canvas.width - boss.radius - 24);
+        const maxX = Math.max(minX, bounds.width - boss.radius - 24);
         boss.x += boss.drift * 1.65 * delta;
         if (boss.x < minX || boss.x > maxX) {
             boss.x = Math.max(minX, Math.min(maxX, boss.x));
@@ -251,11 +260,12 @@ function updateHunterBoss(delta) {
             boss.dashDropTimer = 6;
         }
 
-        const outOfArena = boss.x < boss.radius || boss.x > canvas.width - boss.radius ||
-            boss.y < boss.radius || boss.y > canvas.height - boss.radius;
+        const bounds = getBossArenaBounds();
+        const outOfArena = boss.x < boss.radius || boss.x > bounds.width - boss.radius ||
+            boss.y < boss.radius || boss.y > bounds.height - boss.radius;
         if (boss.actionTimer <= 0 || outOfArena) {
-            boss.x = Math.max(boss.radius, Math.min(canvas.width - boss.radius, boss.x));
-            boss.y = Math.max(boss.radius, Math.min(canvas.height - boss.radius, boss.y));
+            boss.x = Math.max(boss.radius, Math.min(bounds.width - boss.radius, boss.x));
+            boss.y = Math.max(boss.radius, Math.min(bounds.height - boss.radius, boss.y));
             setBossAction('recover', 38);
         }
         return;
@@ -283,7 +293,8 @@ function applySingularityPull(delta) {
 }
 
 function updateSingularityBoss(delta) {
-    boss.x = canvas.width * 0.5 + Math.sin(boss.age * 0.006) * canvas.width * 0.055;
+    const bounds = getBossArenaBounds();
+    boss.x = bounds.width * 0.5 + Math.sin(boss.age * 0.006) * bounds.width * 0.055;
     boss.y = boss.entryY + Math.sin(boss.age * 0.013) * 10;
 
     if (boss.action === 'idle') {
@@ -304,7 +315,7 @@ function updateSingularityBoss(delta) {
         if (boss.actionTimer <= 0) {
             boss.waveRadius = 0;
             boss.waveSpeed = 6 + Math.min(2, boss.tier * 0.24);
-            boss.waveMax = Math.hypot(canvas.width, canvas.height) + 32;
+            boss.waveMax = Math.hypot(bounds.width, bounds.height) + 32;
             boss.waveHit1 = false;
             boss.waveHit2 = false;
             setBossAction('shockwave', Math.ceil(boss.waveMax / boss.waveSpeed) + 1);
@@ -361,7 +372,8 @@ function updateBoss(delta = 1) {
     }
 
     if (boss.kind === 'bulwark') {
-        boss.x = canvas.width * 0.5 + Math.sin(boss.age * 0.009) * canvas.width * 0.055;
+        const bounds = getBossArenaBounds();
+        boss.x = bounds.width * 0.5 + Math.sin(boss.age * 0.009) * bounds.width * 0.055;
         boss.y = boss.entryY + Math.sin(boss.age * 0.012) * 10;
         updateBulwarkBoss(step);
     } else if (boss.kind === 'hunter') {
@@ -377,13 +389,14 @@ function spawnBoss() {
     const archetype = BOSS_ARCHETYPES[kind];
     const hpMultiplier = 1 + (tier - 1) * 0.12;
     const maxHp = Math.round((30 + wave * 5) * hpMultiplier);
-    const entryY = Math.max(88, canvas.height * 0.16);
+    const bounds = getBossArenaBounds();
+    const entryY = Math.max(88, bounds.height * 0.16);
 
     boss = {
         kind,
         name: archetype.label + (tier > 1 ? ' · ' + tier : ''),
         tier,
-        x: canvas.width * 0.5,
+        x: bounds.width * 0.5,
         y: -100,
         vx: 0,
         vy: 0.72,
@@ -398,12 +411,12 @@ function spawnBoss() {
         action: 'enter',
         actionTimer: 0,
         actionDuration: 0,
-        targetX: canvas.width * 0.5,
-        targetY: canvas.height * 0.5,
+        targetX: bounds.width * 0.5,
+        targetY: bounds.height * 0.5,
         aimAngle: Math.PI / 2,
         dashAngle: Math.PI / 2,
-        fieldX: canvas.width * 0.5,
-        fieldY: canvas.height * 0.5,
+        fieldX: bounds.width * 0.5,
+        fieldY: bounds.height * 0.5,
         fieldRadius: 210,
         waveRadius: 0,
         waveMax: 0,
@@ -473,6 +486,7 @@ function drawBossProjectiles() {
 function drawBossTelegraph() {
     if (!boss) return;
     const quality = getGraphicsPreset();
+    const bounds = getBossArenaBounds();
     ctx.save();
     ctx.lineWidth = 2;
     ctx.setLineDash([10, 8]);
@@ -481,7 +495,7 @@ function drawBossTelegraph() {
     if (boss.action === 'barrageTell') {
         const boltCount = Math.min(5, 3 + Math.floor((boss.tier - 1) / 2));
         const totalSpread = 0.22 * (boltCount - 1);
-        const range = Math.hypot(canvas.width, canvas.height);
+        const range = Math.hypot(bounds.width, bounds.height);
         ctx.globalAlpha = pulse;
         ctx.strokeStyle = quality.gradientMaterials ? '#ff9f57' : '#b57a58';
         for (let index = 0; index < boltCount; index += 1) {
@@ -493,7 +507,7 @@ function drawBossTelegraph() {
             ctx.stroke();
         }
     } else if (boss.action === 'chargeTell') {
-        const range = Math.hypot(canvas.width, canvas.height);
+        const range = Math.hypot(bounds.width, bounds.height);
         ctx.globalAlpha = 0.55 + 0.3 * Math.sin(gameTime * 0.35);
         ctx.strokeStyle = quality.gradientMaterials ? '#55eeff' : '#5b9199';
         ctx.beginPath();

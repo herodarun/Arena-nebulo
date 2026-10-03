@@ -37,8 +37,9 @@ const CHARGER_HIT_POINTS = 3;
 const CHARGER_DASH_SPEED = 42;
 const CHARGER_DODGE_WINDOW_FRAMES = 60;
 const CHARGER_COOLDOWN_FRAMES = 180;
-const CHARGER_RAGE_COOLDOWN_FRAMES = 60;
-const CHARGER_RAGE_TURN_RADIANS = 5 * Math.PI / 180;
+const CHARGER_RAGE_ATTACK_INTERVAL_SECONDS = 1.43;
+const CHARGER_RAGE_COOLDOWN_FRAMES = Math.round(CHARGER_RAGE_ATTACK_INTERVAL_SECONDS * 60);
+const CHARGER_RAGE_TURN_RADIANS = 3 * Math.PI / 180;
 const CAREER_XP_STORAGE_KEY = 'nebulaDriftCareerXP';
 const MAX_WAVE_STORAGE_KEY = 'nebulaDriftMaxWave';
 
@@ -183,6 +184,9 @@ function clearForNextWave() {
     if (powerupDisplay) powerupDisplay.classList.add('hidden');
     if (bossDisplay) bossDisplay.classList.add('hidden');
 
+    const cameraView = typeof getCameraWorldView === 'function'
+        ? getCameraWorldView()
+        : { x: 0, y: 0 };
     players.forEach((player, index) => {
         if (!player.active && !(gameMode === '2P' && index === 1)) return;
         if (gameMode === '2P') {
@@ -190,9 +194,9 @@ function clearForNextWave() {
             player.downed = false;
             player.x = canvas.width * (index === 0 ? 0.34 : 0.66);
         } else {
-            player.x = canvas.width * 0.5;
+            player.x = cameraView.x + canvas.width * 0.5;
         }
-        player.y = canvas.height * 0.58;
+        player.y = cameraView.y + canvas.height * 0.58;
         player.vx = 0;
         player.vy = 0;
         player.speed = 0;
@@ -268,7 +272,13 @@ function updateWaveProgressDisplay() {
 function spawnWaveBonus() {
     if (waveTimer > 0 && waveTimer % 180 === 0 && orbs.length < 18) spawnOrb();
     if (waveTimer > 0 && waveTimer % 720 === 0 && powerups.length < 3) {
-        spawnPowerup(rand(canvas.width * 0.2, canvas.width * 0.8), rand(canvas.height * 0.2, canvas.height * 0.8));
+        const cameraView = typeof getCameraWorldView === 'function'
+            ? getCameraWorldView()
+            : { x: 0, y: 0 };
+        spawnPowerup(
+            rand(cameraView.x + canvas.width * 0.2, cameraView.x + canvas.width * 0.8),
+            rand(cameraView.y + canvas.height * 0.2, cameraView.y + canvas.height * 0.8)
+        );
     }
 }
 
@@ -495,8 +505,8 @@ function turnChargerTowardTarget(enemy, target, step) {
 function finishChargerDash(enemy, target) {
     enemy.completedDashes = (enemy.completedDashes || 0) + 1;
     if (enemy.rage) {
-        // Keep rage dash starts on a one-second beat; show the next lane during
-        // whatever recovery time remains after the full-screen crossing.
+        // Keep rage dash starts 1.43 seconds apart; show the next lane during
+        // whatever recovery time remains after reaching a world boundary.
         aimChargerAtTarget(enemy, target);
         enemy.state = 'rageCooldown';
         enemy.stateTimer = Math.max(0, CHARGER_RAGE_COOLDOWN_FRAMES - enemy.dashFrames);
@@ -534,8 +544,29 @@ function spawnEnemyProjectile(sniper, target) {
     });
 }
 
+function constrainCampaignEnemyToWorld(enemy) {
+    const bounds = typeof getGameWorldBounds === 'function'
+        ? getGameWorldBounds()
+        : { width: canvas.width, height: canvas.height };
+    const radius = Math.max(0, Number(enemy.radius) || 0);
+    const minX = Math.min(radius, bounds.width / 2);
+    const minY = Math.min(radius, bounds.height / 2);
+    const maxX = Math.max(minX, bounds.width - radius);
+    const maxY = Math.max(minY, bounds.height - radius);
+    const hitBoundary = enemy.x < minX || enemy.x > maxX || enemy.y < minY || enemy.y > maxY;
+
+    enemy.x = clamp(enemy.x, minX, maxX);
+    enemy.y = clamp(enemy.y, minY, maxY);
+    if ((enemy.x <= minX && enemy.vx < 0) || (enemy.x >= maxX && enemy.vx > 0)) enemy.vx = 0;
+    if ((enemy.y <= minY && enemy.vy < 0) || (enemy.y >= maxY && enemy.vy > 0)) enemy.vy = 0;
+    return hitBoundary;
+}
+
 function updateEnemyEntities(delta = 1) {
     const step = Number.isFinite(delta) ? Math.max(0, delta) : 1;
+    const bounds = typeof getGameWorldBounds === 'function'
+        ? getGameWorldBounds()
+        : { width: canvas.width, height: canvas.height };
     const pace = campaignDifficulty.enemySpeed * (1 + Math.min(0.22, Math.max(0, wave - 1) * 0.02));
 
     for (let index = enemies.length - 1; index >= 0; index -= 1) {
@@ -546,8 +577,8 @@ function updateEnemyEntities(delta = 1) {
             enemy.x += (enemy.vx || 0) * step;
             enemy.y += (enemy.vy || 0) * step;
             enemy.life = (enemy.life || 0) - step;
-            if (enemy.life <= 0 || enemy.x < -100 || enemy.x > canvas.width + 100 ||
-                enemy.y < -100 || enemy.y > canvas.height + 100) enemies.splice(index, 1);
+            if (enemy.life <= 0 || enemy.x < -100 || enemy.x > bounds.width + 100 ||
+                enemy.y < -100 || enemy.y > bounds.height + 100) enemies.splice(index, 1);
             continue;
         }
 
@@ -561,6 +592,7 @@ function updateEnemyEntities(delta = 1) {
                 steerCampaignEnemy(enemy, target, 0.032 * pace * step, 2.35 * pace);
                 enemy.x += enemy.vx * step;
                 enemy.y += enemy.vy * step;
+                constrainCampaignEnemyToWorld(enemy);
                 if (enemy.stateTimer <= 0) {
                     enemy.vx = 0;
                     enemy.vy = 0;
@@ -575,9 +607,12 @@ function updateEnemyEntities(delta = 1) {
                 enemy.y += enemy.vy * step;
                 enemy.dashFrames = (enemy.dashFrames || 0) + step;
 
-                const margin = enemy.radius + 16;
-                if (enemy.x < -margin || enemy.x > canvas.width + margin ||
-                    enemy.y < -margin || enemy.y > canvas.height + margin) {
+                const margin = enemy.radius;
+                const crossedWorldBoundary = enemy.x < margin || enemy.x > bounds.width - margin ||
+                    enemy.y < margin || enemy.y > bounds.height - margin;
+                if (crossedWorldBoundary) {
+                    enemy.x = clamp(enemy.x, margin, Math.max(margin, bounds.width - margin));
+                    enemy.y = clamp(enemy.y, margin, Math.max(margin, bounds.height - margin));
                     finishChargerDash(enemy, target);
                 }
             } else if (enemy.state === 'dashCooldown' || enemy.state === 'preRageCooldown') {
@@ -623,6 +658,7 @@ function updateEnemyEntities(delta = 1) {
                 }
                 enemy.x += enemy.vx * step;
                 enemy.y += enemy.vy * step;
+                constrainCampaignEnemyToWorld(enemy);
                 enemy.fireTimer = (enemy.fireTimer === undefined ? 96 : enemy.fireTimer) - step;
                 if (enemy.fireTimer <= 0) {
                     enemy.aimAngle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
@@ -648,6 +684,7 @@ function updateEnemyEntities(delta = 1) {
             steerCampaignEnemy(enemy, target, 0.014 * pace * step, 1.15 * pace);
             enemy.x += enemy.vx * step;
             enemy.y += enemy.vy * step;
+            constrainCampaignEnemyToWorld(enemy);
         }
     }
 }
@@ -656,14 +693,37 @@ function spawnCampaignEnemy() {
     if (gameMode === 'NET' && typeof CAMPAIGN_LEGACY_SPAWN_ENEMY === 'function') {
         return CAMPAIGN_LEGACY_SPAWN_ENEMY.apply(this, arguments);
     }
-    const edge = 92;
+    const bounds = typeof getGameWorldBounds === 'function'
+        ? getGameWorldBounds()
+        : { width: canvas.width, height: canvas.height };
+    const cameraView = typeof getCameraWorldView === 'function'
+        ? getCameraWorldView()
+        : { x: 0, y: 0 };
+    const edge = Math.min(92, bounds.width * 0.15, bounds.height * 0.15);
+    const minX = Math.min(edge, bounds.width / 2);
+    const minY = Math.min(edge, bounds.height / 2);
+    const maxX = Math.max(minX, bounds.width - edge);
+    const maxY = Math.max(minY, bounds.height - edge);
+    const viewLeft = clamp(cameraView.x, minX, maxX);
+    const viewRight = clamp(cameraView.x + canvas.width, minX, maxX);
+    const viewTop = clamp(cameraView.y, minY, maxY);
+    const viewBottom = clamp(cameraView.y + canvas.height, minY, maxY);
     const side = Math.floor(Math.random() * 4);
     let x;
     let y;
-    if (side === 0) { x = Math.random() * canvas.width; y = -edge; }
-    else if (side === 1) { x = canvas.width + edge; y = Math.random() * canvas.height; }
-    else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + edge; }
-    else { x = -edge; y = Math.random() * canvas.height; }
+    if (side === 0) {
+        x = rand(Math.min(viewLeft, viewRight), Math.max(viewLeft, viewRight));
+        y = clamp(cameraView.y + edge, minY, maxY);
+    } else if (side === 1) {
+        x = clamp(cameraView.x + canvas.width - edge, minX, maxX);
+        y = rand(Math.min(viewTop, viewBottom), Math.max(viewTop, viewBottom));
+    } else if (side === 2) {
+        x = rand(Math.min(viewLeft, viewRight), Math.max(viewLeft, viewRight));
+        y = clamp(cameraView.y + canvas.height - edge, minY, maxY);
+    } else {
+        x = clamp(cameraView.x + edge, minX, maxX);
+        y = rand(Math.min(viewTop, viewBottom), Math.max(viewTop, viewBottom));
+    }
 
     const activeChargerCount = enemies.reduce((count, enemy) => count + (enemy && enemy.type === 'charger' ? 1 : 0), 0);
     const canSpawnCharger = campaignDifficulty.id !== 'easy' && activeChargerCount < CHARGER_MAX_ACTIVE;
@@ -756,7 +816,10 @@ function drawEnemies() {
         } else if (enemy.type === 'charger') {
             const showingLane = enemy.state === 'telegraph' || enemy.state === 'rageCooldown';
             if (showingLane) {
-                const lineLength = Math.hypot(canvas.width, canvas.height) * 1.4;
+                const bounds = typeof getGameWorldBounds === 'function'
+                    ? getGameWorldBounds()
+                    : { width: canvas.width, height: canvas.height };
+                const lineLength = Math.hypot(bounds.width, bounds.height) * 1.4;
                 ctx.save();
                 ctx.globalAlpha = 0.5 + 0.25 * Math.sin(gameTime * 0.35);
                 ctx.setLineDash([8, 7]);
@@ -811,7 +874,10 @@ function drawEnemies() {
             ctx.fill();
         } else if (enemy.type === 'sniper') {
             if (enemy.state === 'aiming') {
-                const lineLength = Math.hypot(canvas.width, canvas.height);
+                const bounds = typeof getGameWorldBounds === 'function'
+                    ? getGameWorldBounds()
+                    : { width: canvas.width, height: canvas.height };
+                const lineLength = Math.hypot(bounds.width, bounds.height);
                 ctx.save();
                 ctx.globalAlpha = 0.46 + 0.3 * Math.sin(gameTime * 0.3);
                 ctx.setLineDash([5, 8]);
