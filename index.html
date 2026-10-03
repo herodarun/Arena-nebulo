@@ -306,6 +306,7 @@
                 <div><span>ОПЫТ ЗА ВОЛНУ</span><strong id="waveClearXp">0 XP</strong></div>
                 <div><span>СЛОЖНОСТЬ</span><strong id="waveClearDifficulty">ОБЫЧНАЯ</strong></div>
             </div>
+            <p id="waveClearOddsNote" class="progression-note">Шансы следующей рулетки: лёгкая 20%, обычная 50%, сложная 20%, невозможная 10%.</p>
             <p class="progression-note">Продолжи забег или вернись в ангар-магазин.</p>
             <div class="progression-actions">
                 <button id="waveClearShopBtn" class="progression-button secondary" type="button">В МАГАЗИН</button>
@@ -324,12 +325,12 @@
                 <strong id="rouletteCurrent">ГОТОВИМСЯ</strong>
             </div>
             <div class="roulette-odds" aria-label="Шансы сложностей">
-                <span class="odds-easy">ЛЁГКАЯ <b>20%</b></span>
-                <span class="odds-normal">ОБЫЧНАЯ <b>50%</b></span>
-                <span class="odds-hard">СЛОЖНАЯ <b>20%</b></span>
-                <span class="odds-impossible">НЕВОЗМОЖНАЯ <b>10%</b></span>
+                <span class="odds-easy">ЛЁГКАЯ <b id="oddsEasy">20%</b></span>
+                <span class="odds-normal">ОБЫЧНАЯ <b id="oddsNormal">50%</b></span>
+                <span class="odds-hard">СЛОЖНАЯ <b id="oddsHard">20%</b></span>
+                <span class="odds-impossible">НЕВОЗМОЖНАЯ <b id="oddsImpossible">10%</b></span>
             </div>
-            <p id="rouletteResultNote" class="progression-note">Сложная и невозможная вместе выпадают в 30% случаев.</p>
+            <p id="rouletteResultNote" class="progression-note">Шансы меняются после каждой пройденной волны независимо от выпавшей сложности.</p>
             <button id="startRolledWaveBtn" class="progression-button primary hidden" type="button">ВЫХОД НА ВОЛНУ</button>
         </section>
     </div>
@@ -352,7 +353,7 @@
                     <strong id="metaMaxWave">0</strong>
                 </div>
                 <div class="shop-record-card">
-                    <span>НАКОПЛЕННЫЙ ОПЫТ</span>
+                    <span>КАРЬЕРНЫЙ XP</span>
                     <strong id="metaCareerXp">0 XP</strong>
                 </div>
             </div>
@@ -374,6 +375,35 @@
                 </div>
                 <input id="shopPreviewZoom" class="shop-preview-zoom" type="range" min="80" max="160" step="1" value="100" aria-label="Приближение корабля в ангаре">
                 <p id="shopPreviewHint" class="shop-preview-hint">Потяни корабль, чтобы повернуть. Колесо мыши или ползунок — приблизить.</p>
+
+                <section id="hangarEquipmentConsole" class="hangar-equipment-console" data-active-group="weapon" aria-label="Выбор оборудования корабля">
+                    <nav class="hangar-group-wheel" role="tablist" aria-label="Группы оборудования">
+                        <span class="hangar-group-wheel-arc" aria-hidden="true"></span>
+                        <button id="hangarWeaponGroup" class="hangar-group-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="hangarModulePanel" data-hangar-group="weapon">
+                            <span class="hangar-group-glyph" aria-hidden="true">◉</span><span>ОРУЖИЕ</span>
+                        </button>
+                        <button id="hangarEngineGroup" class="hangar-group-tab" type="button" role="tab" aria-selected="false" aria-controls="hangarModulePanel" data-hangar-group="engine">
+                            <span class="hangar-group-glyph" aria-hidden="true">⟡</span><span>ДВИГАТЕЛИ</span>
+                        </button>
+                        <button id="hangarGroupPrev" class="hangar-group-turn hangar-group-turn-prev" type="button" aria-label="Предыдущая группа">▲</button>
+                        <button id="hangarGroupNext" class="hangar-group-turn hangar-group-turn-next" type="button" aria-label="Следующая группа">▼</button>
+                    </nav>
+                    <div id="hangarModulePanel" class="hangar-module-panel" role="tabpanel" aria-labelledby="hangarWeaponGroup">
+                        <div class="hangar-module-heading">
+                            <span id="hangarModuleGroupLabel" class="hangar-module-group-label">ОРУЖИЕ · ОСНАСТКА</span>
+                            <div class="hangar-module-rotation" aria-label="Прокрутить модули">
+                                <button id="hangarModulePrev" type="button" aria-label="Предыдущий модуль">‹</button>
+                                <span id="hangarModulePosition">01 / 03</span>
+                                <button id="hangarModuleNext" type="button" aria-label="Следующий модуль">›</button>
+                            </div>
+                        </div>
+                        <h3 id="hangarModuleTitle" class="hangar-module-title">Штатный излучатель</h3>
+                        <p id="hangarModuleDescription" class="hangar-module-description">Надёжный стандартный комплект оружия.</p>
+                        <span id="hangarModuleEffect" class="hangar-module-effect">БЕЗ ДОПОЛНИТЕЛЬНЫХ БОНУСОВ</span>
+                        <button id="hangarModuleAction" class="hangar-module-action" type="button">АКТИВНО</button>
+                    </div>
+                    <p id="hangarEquipmentStatus" class="hangar-equipment-status" aria-live="polite">Постоянные улучшения действуют в локальной кампании.</p>
+                </section>
             </aside>
 
             <main class="shop-center-message">
@@ -385,9 +415,36 @@
         </div>
 
         <footer class="shop-bottom-frame">
-            <span class="shop-frame-kicker">НОВАЯ МИССИЯ</span>
-            <button id="newRunBtn" class="progression-button primary new-run-button" type="button">НАЧАТЬ НОВЫЙ ЗАБЕГ</button>
+            <span class="shop-frame-kicker">ПОСТОЯННАЯ ПРОКАЧКА</span>
+            <div class="shop-hangar-actions">
+                <button id="hangarTechTreeBtn" class="progression-button secondary hangar-tech-open-button" type="button" aria-haspopup="dialog">ДЕРЕВО ТЕХНОЛОГИЙ</button>
+                <button id="newRunBtn" class="progression-button primary new-run-button" type="button">НАЧАТЬ НОВЫЙ ЗАБЕГ</button>
+            </div>
         </footer>
+    </div>
+
+    <div id="hangarTechTreeOverlay" class="hangar-tech-overlay hidden" aria-hidden="true">
+        <section class="hangar-tech-window" role="dialog" aria-modal="true" aria-labelledby="hangarTechTreeTitle">
+            <header class="hangar-tech-header">
+                <div>
+                    <span class="hangar-tech-kicker">VHS-LINK · КАРЬЕРНЫЙ ТЕРМИНАЛ</span>
+                    <h2 id="hangarTechTreeTitle">ДЕРЕВО ТЕХНОЛОГИЙ</h2>
+                </div>
+                <div class="hangar-tech-balance"><span>ДОСТУПНО</span><strong id="hangarTechCareerXp">0 XP</strong></div>
+                <button id="closeHangarTechTreeBtn" class="hangar-tech-close" type="button" aria-label="Закрыть дерево технологий">×</button>
+            </header>
+            <p class="hangar-tech-intro">20 постоянных узлов. Часть систем требует рекордной волны, предыдущих разработок и купленных насадок.</p>
+            <div id="hangarTechTreeViewport" class="hangar-tech-tree-viewport" tabindex="0" aria-label="Прокручиваемое дерево технологий">
+                <div id="hangarTechTreeBoard" class="hangar-tech-tree-board">
+                    <svg id="hangarTechConnections" class="hangar-tech-connections" aria-hidden="true"></svg>
+                    <div id="hangarTechNodeGrid" class="hangar-tech-node-grid"></div>
+                </div>
+            </div>
+            <footer class="hangar-tech-footer">
+                <p id="hangarTechFeedback" class="hangar-tech-feedback" aria-live="polite">Выбери доступный узел для постоянной установки.</p>
+                <button id="hangarTechDoneBtn" class="progression-button primary" type="button">ЗАКРЫТЬ ТЕРМИНАЛ</button>
+            </footer>
+        </section>
     </div>
 
     <!-- Pause Overlay -->
@@ -465,5 +522,6 @@
     <script src="boss-mechanics.js"></script>
     <script src="wave-system.js"></script>
     <script src="camera-world.js"></script>
+    <script src="hangar-tech.js"></script>
 </body>
 </html>

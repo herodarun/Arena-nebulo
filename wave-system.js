@@ -30,7 +30,71 @@ const WAVE_DIFFICULTY_PROFILES = Object.freeze({
 });
 
 const WAVE_DIFFICULTY_ORDER = Object.freeze(['easy', 'normal', 'hard', 'impossible']);
+const WAVE_DIFFICULTY_BASE_WEIGHTS = Object.freeze({ easy: 20, normal: 50, hard: 20, impossible: 10 });
+let waveDifficultyWeights = { ...WAVE_DIFFICULTY_BASE_WEIGHTS };
 const WAVE_MAX_ENEMIES = 18;
+
+function roundDifficultyWeight(value) {
+    return Math.round(value * 100) / 100;
+}
+
+function formatDifficultyWeight(value) {
+    return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(value);
+}
+
+function refreshDifficultyOddsDisplay() {
+    const oddsElements = {
+        easy: campaignElement('oddsEasy'),
+        normal: campaignElement('oddsNormal'),
+        hard: campaignElement('oddsHard'),
+        impossible: campaignElement('oddsImpossible')
+    };
+    Object.entries(oddsElements).forEach(([id, element]) => {
+        if (element) element.textContent = formatDifficultyWeight(waveDifficultyWeights[id]) + '%';
+    });
+
+    const oddsNote = campaignElement('waveClearOddsNote');
+    if (oddsNote) {
+        oddsNote.textContent = 'Следующая рулетка: лёгкая ' + formatDifficultyWeight(waveDifficultyWeights.easy) +
+            '%, обычная ' + formatDifficultyWeight(waveDifficultyWeights.normal) +
+            '%, сложная ' + formatDifficultyWeight(waveDifficultyWeights.hard) +
+            '%, невозможная ' + formatDifficultyWeight(waveDifficultyWeights.impossible) + '%.';
+    }
+}
+
+function resetDifficultyWeights() {
+    waveDifficultyWeights = { ...WAVE_DIFFICULTY_BASE_WEIGHTS };
+    refreshDifficultyOddsDisplay();
+}
+
+function transferWeightIntoHardAndImpossible(sourceId, amount, hardShare) {
+    const available = Math.max(0, waveDifficultyWeights[sourceId]);
+    const moved = Math.min(amount, available);
+    if (moved <= 0) return 0;
+
+    const toHard = roundDifficultyWeight(moved * hardShare);
+    const toImpossible = roundDifficultyWeight(moved - toHard);
+    waveDifficultyWeights[sourceId] = roundDifficultyWeight(Math.max(0, available - moved));
+    waveDifficultyWeights.hard = roundDifficultyWeight(waveDifficultyWeights.hard + toHard);
+    waveDifficultyWeights.impossible = roundDifficultyWeight(waveDifficultyWeights.impossible + toImpossible);
+    return moved;
+}
+
+function updateDifficultyWeightsAfterWave() {
+    if (waveDifficultyWeights.easy > 0) {
+        transferWeightIntoHardAndImpossible('easy', 2, 0.8);
+    } else if (waveDifficultyWeights.normal > 0) {
+        transferWeightIntoHardAndImpossible('normal', 3, 2 / 3);
+    } else if (waveDifficultyWeights.hard > 0) {
+        const moved = Math.min(5, waveDifficultyWeights.hard);
+        waveDifficultyWeights.hard = roundDifficultyWeight(Math.max(0, waveDifficultyWeights.hard - moved));
+        waveDifficultyWeights.impossible = roundDifficultyWeight(waveDifficultyWeights.impossible + moved);
+    }
+    refreshDifficultyOddsDisplay();
+    return { ...waveDifficultyWeights };
+}
+
+window.getWaveDifficultyWeights = () => ({ ...waveDifficultyWeights });
 const WAVE_MAX_ASTEROIDS = 16;
 const CHARGER_MAX_ACTIVE = 2;
 const CHARGER_HIT_POINTS = 3;
@@ -130,6 +194,8 @@ function refreshCampaignShop() {
     const xpLabel = campaignElement('metaCareerXp');
     if (maxWaveLabel) maxWaveLabel.textContent = formatCampaignNumber(campaignMaxWave);
     if (xpLabel) xpLabel.textContent = formatCampaignNumber(campaignCareerExperience) + ' XP';
+    if (typeof renderHangarEquipmentPanel === 'function') renderHangarEquipmentPanel();
+    if (typeof refreshHangarTechBalance === 'function') refreshHangarTechBalance();
 }
 
 function updateCampaignMaxWave(candidate = wave) {
@@ -320,6 +386,7 @@ function completeCampaignWave() {
     campaignPhase = 'complete';
     gameState = 'WAVE_CLEAR';
     updateCampaignMaxWave(wave);
+    updateDifficultyWeightsAfterWave();
     persistCampaignRecords();
     showCampaignHud(false);
     hideCampaignScreens();
@@ -374,17 +441,21 @@ function pickWeightedDifficulty() {
     const roll = Math.random() * 100;
     let cumulativeWeight = 0;
     for (const id of WAVE_DIFFICULTY_ORDER) {
-        const profile = WAVE_DIFFICULTY_PROFILES[id];
-        cumulativeWeight += profile.weight;
-        if (roll < cumulativeWeight) return profile;
+        const weight = waveDifficultyWeights[id];
+        if (weight <= 0) continue;
+        cumulativeWeight += weight;
+        if (roll < cumulativeWeight) {
+            return { ...WAVE_DIFFICULTY_PROFILES[id], weight };
+        }
     }
-    return WAVE_DIFFICULTY_PROFILES.impossible;
+    return { ...WAVE_DIFFICULTY_PROFILES.impossible, weight: waveDifficultyWeights.impossible };
 }
 
 function startDifficultyRoulette() {
     if (rouletteLaunchTimer !== null) clearTimeout(rouletteLaunchTimer);
     rouletteLaunchTimer = null;
     rouletteOutcome = pickWeightedDifficulty();
+    refreshDifficultyOddsDisplay();
     rouletteIsSpinning = true;
     setCampaignScreen('waveClearScreen', false);
     setCampaignScreen('rouletteScreen', true);
@@ -399,9 +470,11 @@ function startDifficultyRoulette() {
         display.textContent = 'КРУТИМСЯ';
         display.dataset.difficulty = 'normal';
     }
-    if (note) note.textContent = 'Сложная и невозможная вместе выпадают в 30% случаев.';
+    if (note) note.textContent = 'Шансы меняются после каждой пройденной волны независимо от выпавшей сложности.';
 
-    const spinOrder = WAVE_DIFFICULTY_ORDER.map((id) => WAVE_DIFFICULTY_PROFILES[id]);
+    const spinOrder = WAVE_DIFFICULTY_ORDER
+        .filter((id) => waveDifficultyWeights[id] > 0)
+        .map((id) => WAVE_DIFFICULTY_PROFILES[id]);
     let frameCount = 0;
     let startTime = null;
     let lastChange = 0;
@@ -436,7 +509,8 @@ function startDifficultyRoulette() {
         }
         if (stage) stage.classList.add('is-stopped');
         if (note) {
-            note.textContent = 'Следующая волна: ' + rouletteOutcome.label.toLowerCase() + '. Вероятность этого сектора — ' + rouletteOutcome.weight + '%. Тяжёлые сектора вместе — 30%. Старт через секунду.';
+            note.textContent = 'Следующая волна: ' + rouletteOutcome.label.toLowerCase() + '. Вероятность — ' +
+                formatDifficultyWeight(rouletteOutcome.weight) + '%. После завершения волны шансы изменятся снова. Старт через секунду.';
         }
         if (startButton) startButton.classList.remove('hidden');
         rouletteLaunchTimer = setTimeout(beginNextRolledWave, 1100);
@@ -1452,6 +1526,9 @@ function drawHangarShipPreview() {
     previewContext.shadowColor = accent;
     previewContext.shadowBlur = 12;
     drawShipSilhouette(previewContext, primary, accent, boost, { gradientMaterials: true, laserGlow: true });
+    if (typeof window.drawHangarWeaponAttachment === 'function') {
+        window.drawHangarWeaponAttachment(previewContext, undefined, accent);
+    }
     previewContext.restore();
 
     previewContext.save();
@@ -1559,6 +1636,7 @@ if (typeof CAMPAIGN_LEGACY_START_GAME === 'function') {
             return result;
         }
 
+        resetDifficultyWeights();
         startCampaignWave(1, WAVE_DIFFICULTY_PROFILES.normal, { clear: false, announce: false });
         return result;
     };

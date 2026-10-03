@@ -873,11 +873,16 @@ function experienceForNextLevel(level) {
 }
 
 function getUpgradeRank(id) {
-    return upgradeLevels[id] || 0;
+    const runRank = upgradeLevels[id] || 0;
+    const hangarRank = typeof getHangarUpgradeRank === 'function' ? getHangarUpgradeRank(id) : 0;
+    return runRank + hangarRank;
 }
 
 function getShotEnergyCost() {
-    return Math.max(0.6, 2 * Math.pow(0.82, getUpgradeRank('efficiency')));
+    const hangarMultiplier = typeof getHangarShotCostMultiplier === 'function'
+        ? getHangarShotCostMultiplier()
+        : 1;
+    return Math.max(0.6, 2 * Math.pow(0.82, getUpgradeRank('efficiency')) * hangarMultiplier);
 }
 
 function refreshExperienceHud() {
@@ -969,7 +974,7 @@ function renderUpgradeDraft() {
 
         const rank = document.createElement('span');
         rank.className = 'upgrade-card-rank';
-        rank.textContent = `УСИЛЕНИЕ · РАНГ ${getUpgradeRank(card.id) + 1}`;
+        rank.textContent = `УСИЛЕНИЕ · РАНГ ${(upgradeLevels[card.id] || 0) + 1}`;
 
         const cardTitle = document.createElement('span');
         cardTitle.className = 'upgrade-card-title';
@@ -1023,7 +1028,7 @@ function applyUpgrade(id) {
 function chooseUpgrade(id) {
     if (!upgradeChoiceOpen || !UPGRADE_CARDS.some((card) => card.id === id)) return;
 
-    upgradeLevels[id] = getUpgradeRank(id) + 1;
+    upgradeLevels[id] = (upgradeLevels[id] || 0) + 1;
     applyUpgrade(id);
     pendingUpgradePicks = Math.max(0, pendingUpgradePicks - 1);
     refreshExperienceHud();
