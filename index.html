@@ -35,6 +35,9 @@
                 <button id="mode2P" class="mode-btn">👥 2 ИГРОКА (1 ПК)</button>
                 <button id="modeNet" class="mode-btn">🌐 ОНЛАЙН МУЛЬТИПЛЕЕР</button>
             </div>
+            <button id="graphicsSettingsBtn" class="settings-menu-button" type="button" aria-haspopup="dialog">
+                <span aria-hidden="true">⚙</span> НАСТРОЙКИ ГРАФИКИ
+            </button>
 
             <!-- Network Setup Panel -->
             <div class="net-panel hidden" id="netPanel">
@@ -191,6 +194,13 @@
             <div class="hud-item" id="waveDisplay">
                 <span class="hud-label">ВОЛНА</span>
                 <span class="hud-value" id="waveValue">1</span>
+                <div id="waveRunDetails" class="wave-run-details hidden">
+                    <span id="waveDifficultyBadge" class="wave-difficulty-badge">ОБЫЧНАЯ</span>
+                    <div class="wave-progress-track" aria-hidden="true">
+                        <div id="waveProgressFill" class="wave-progress-fill"></div>
+                    </div>
+                    <span id="waveProgressText" class="wave-progress-text">РАЗГОН ВОЛНЫ</span>
+                </div>
             </div>
             <div class="hud-item hidden" id="powerupDisplay">
                 <span class="hud-label" id="powerupLabel">УСИЛЕНИЕ</span>
@@ -199,7 +209,7 @@
                 </div>
             </div>
             <div class="hud-item hidden" id="bossDisplay">
-                <span class="hud-label" style="color:#ff4444;">БОСС</span>
+                <span class="hud-label" id="bossName" style="color:#ff4444;">БОСС</span>
                 <div class="boss-bar">
                     <div class="boss-fill" id="bossFill"></div>
                 </div>
@@ -226,6 +236,17 @@
                 <span class="hud-label">ЩИТЫ</span>
                 <div class="shield-icons" id="shieldIcons"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Experience and level progress -->
+    <div id="xpHud" class="xp-hud hidden" aria-label="Опыт и уровень">
+        <div class="xp-meta">
+            <span id="xpLevel">УРОВЕНЬ 1</span>
+            <span id="xpAmount">0 / 100 XP</span>
+        </div>
+        <div class="xp-track" role="progressbar" aria-label="Опыт до следующего уровня" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="xpFill" class="xp-fill"></div>
         </div>
     </div>
 
@@ -271,7 +292,102 @@
                 <span class="btn-text">ЕЩЁ РАЗ</span>
                 <span class="btn-glow"></span>
             </button>
+            <button class="menu-return-button" id="gameOverShopBtn" type="button">В МАГАЗИН</button>
         </div>
+    </div>
+
+    <!-- Wave completion hub -->
+    <div id="waveClearScreen" class="screen hidden" aria-hidden="true">
+        <section class="screen-content progression-panel">
+            <span class="progression-kicker">СЕКТОР ЗАЧИЩЕН</span>
+            <h2 class="progression-title">ВОЛНА <span id="waveClearNumber">1</span><br><span class="accent">ПРОЙДЕНА</span></h2>
+            <div class="wave-result-grid">
+                <div><span>УНИЧТОЖЕНО</span><strong id="waveClearKills">0</strong></div>
+                <div><span>ОПЫТ ЗА ВОЛНУ</span><strong id="waveClearXp">0 XP</strong></div>
+                <div><span>СЛОЖНОСТЬ</span><strong id="waveClearDifficulty">ОБЫЧНАЯ</strong></div>
+            </div>
+            <p class="progression-note">Продолжи забег или вернись в ангар-магазин.</p>
+            <div class="progression-actions">
+                <button id="waveClearShopBtn" class="progression-button secondary" type="button">В МАГАЗИН</button>
+                <button id="continueWaveBtn" class="progression-button primary" type="button">ПРОДОЛЖИТЬ</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Weighted difficulty roulette before the next wave -->
+    <div id="rouletteScreen" class="screen hidden" aria-hidden="true">
+        <section class="screen-content progression-panel roulette-panel">
+            <span class="progression-kicker">СЛЕДУЮЩИЙ СЕКТОР</span>
+            <h2 class="progression-title roulette-title">РУЛЕТКА<br><span class="accent">СЛОЖНОСТИ</span></h2>
+            <div class="roulette-display" aria-live="polite">
+                <div class="roulette-orbit" aria-hidden="true"><span></span></div>
+                <strong id="rouletteCurrent">ГОТОВИМСЯ</strong>
+            </div>
+            <div class="roulette-odds" aria-label="Шансы сложностей">
+                <span class="odds-easy">ЛЁГКАЯ <b>20%</b></span>
+                <span class="odds-normal">ОБЫЧНАЯ <b>50%</b></span>
+                <span class="odds-hard">СЛОЖНАЯ <b>20%</b></span>
+                <span class="odds-impossible">НЕВОЗМОЖНАЯ <b>10%</b></span>
+            </div>
+            <p id="rouletteResultNote" class="progression-note">Сложная и невозможная вместе выпадают в 30% случаев.</p>
+            <button id="startRolledWaveBtn" class="progression-button primary hidden" type="button">ВЫХОД НА ВОЛНУ</button>
+        </section>
+    </div>
+
+    <!-- Full-screen hangar/shop: the previous run stays hidden behind this opaque screen. -->
+    <div id="shopScreen" class="screen hidden shop-screen" aria-hidden="true">
+        <div class="shop-cosmos" aria-hidden="true">
+            <span class="shop-flyby shop-flyby--near"><i></i></span>
+            <span class="shop-flyby shop-flyby--far"><i></i></span>
+        </div>
+
+        <header class="shop-top-frame">
+            <div class="shop-record-heading">
+                <span class="shop-frame-kicker">АНГАР · ПРОГРЕСС ПИЛОТА</span>
+                <h2>ДАННЫЕ ПИЛОТА</h2>
+            </div>
+            <div class="shop-records">
+                <div class="shop-record-card">
+                    <span>МАКСИМАЛЬНАЯ ВОЛНА</span>
+                    <strong id="metaMaxWave">0</strong>
+                </div>
+                <div class="shop-record-card">
+                    <span>НАКОПЛЕННЫЙ ОПЫТ</span>
+                    <strong id="metaCareerXp">0 XP</strong>
+                </div>
+            </div>
+        </header>
+
+        <div class="shop-hangar-layout">
+            <aside class="shop-ship-inspection" aria-label="Осмотр корабля игрока">
+                <header class="shop-ship-inspection-header">
+                    <span class="shop-frame-kicker">АНГАР · БОРТ 01</span>
+                    <h2>КОРАБЛЬ ПИЛОТА</h2>
+                </header>
+                <div class="shop-preview-stage">
+                    <canvas id="shopShipPreviewCanvas" role="img" tabindex="0" aria-label="Вращаемый предпросмотр корабля игрока" aria-describedby="shopPreviewHint"></canvas>
+                    <span class="shop-preview-id">ND-01 · READY</span>
+                </div>
+                <div class="shop-preview-zoom-row">
+                    <label for="shopPreviewZoom">МАСШТАБ ОСМОТРА</label>
+                    <output id="shopPreviewZoomValue" for="shopPreviewZoom">100%</output>
+                </div>
+                <input id="shopPreviewZoom" class="shop-preview-zoom" type="range" min="80" max="160" step="1" value="100" aria-label="Приближение корабля в ангаре">
+                <p id="shopPreviewHint" class="shop-preview-hint">Потяни корабль, чтобы повернуть. Колесо мыши или ползунок — приблизить.</p>
+            </aside>
+
+            <main class="shop-center-message">
+                <span class="shop-frame-kicker">МЕЖДУ ЗАБЕГАМИ</span>
+                <h1>NEBULA<br><span class="accent">DRIFT</span></h1>
+                <p>Подготовь корабль к следующему вылету.</p>
+                <span class="shop-availability"><i></i> СИСТЕМЫ КОРАБЛЯ ГОТОВЫ</span>
+            </main>
+        </div>
+
+        <footer class="shop-bottom-frame">
+            <span class="shop-frame-kicker">НОВАЯ МИССИЯ</span>
+            <button id="newRunBtn" class="progression-button primary new-run-button" type="button">НАЧАТЬ НОВЫЙ ЗАБЕГ</button>
+        </footer>
     </div>
 
     <!-- Pause Overlay -->
@@ -279,9 +395,75 @@
         <div class="screen-content">
             <h2 class="game-title">ПАУЗА</h2>
             <p class="subtitle">Нажмите ESC чтобы продолжить</p>
+            <button id="pauseGraphicsSettingsBtn" class="settings-menu-button pause-settings-button" type="button" aria-haspopup="dialog">
+                ⚙ НАСТРОЙКИ ГРАФИКИ
+            </button>
         </div>
     </div>
 
+    <div id="graphicsSettingsOverlay" class="graphics-settings-overlay hidden" aria-hidden="true">
+        <section class="graphics-settings-panel" role="dialog" aria-modal="true" aria-labelledby="graphicsSettingsTitle">
+            <button id="closeGraphicsSettingsBtn" class="graphics-settings-close" type="button" aria-label="Закрыть настройки">×</button>
+            <span class="graphics-settings-kicker">СИСТЕМА РЕНДЕРА</span>
+            <h2 id="graphicsSettingsTitle">НАСТРОЙКИ ГРАФИКИ</h2>
+            <p class="graphics-settings-intro">Качество управляет эффектами, а ползунок отдельно — разрешением кадра. Настройки можно менять во время паузы.</p>
+            <div class="graphics-quality-options" role="group" aria-label="Качество графики">
+                <button class="graphics-quality-card" type="button" data-graphics-quality="low" aria-pressed="false">
+                    <span class="quality-name">НИЗКОЕ</span>
+                    <span class="quality-description">Пониженное разрешение рендера, меньше неона и частиц.</span>
+                </button>
+                <button class="graphics-quality-card is-selected" type="button" data-graphics-quality="medium" aria-pressed="true">
+                    <span class="quality-name">СРЕДНЕЕ</span>
+                    <span class="quality-description">Стандартная графика игры.</span>
+                </button>
+                <button class="graphics-quality-card" type="button" data-graphics-quality="high" aria-pressed="false">
+                    <span class="quality-name">ВЫСОКОЕ</span>
+                    <span class="quality-description">Больше деталей и частиц.</span>
+                </button>
+            </div>
+            <section class="render-scale-control" aria-labelledby="renderScaleLabel">
+                <div class="render-scale-heading">
+                    <label id="renderScaleLabel" for="renderScaleSlider">МАСШТАБ ОТРИСОВКИ</label>
+                    <output id="renderScaleValue" for="renderScaleSlider">84%</output>
+                </div>
+                <input id="renderScaleSlider" type="range" min="50" max="100" step="1" value="84" aria-describedby="renderScaleHelp">
+                <div class="render-scale-endpoints" aria-hidden="true">
+                    <span>50% · ПИКСЕЛЬНЕЕ</span>
+                    <span>100% · ЧЁТЧЕ</span>
+                </div>
+                <p id="renderScaleHelp" class="render-scale-help">Меньше — крупнее пиксели и легче рендер; больше — чётче. Масштаб применяется ко всему игровому кадру.</p>
+                <button id="renderScaleAutoBtn" class="render-scale-auto" type="button" disabled aria-label="Сейчас используется масштаб выбранного пресета">ПО ПРЕСЕТУ</button>
+            </section>
+            <p id="graphicsQualityNote" class="graphics-quality-note">Форма корабля и астероидов не меняется ни в одном режиме.</p>
+            <button id="doneGraphicsSettingsBtn" class="graphics-settings-done" type="button">ГОТОВО</button>
+        </section>
+    </div>
+
+    <!-- Upgrade choice: appears at levels 2, 4, 6, ... -->
+    <div id="upgradeOverlay" class="upgrade-overlay hidden" aria-hidden="true">
+        <section class="upgrade-panel" role="dialog" aria-modal="true" aria-labelledby="upgradeTitle">
+            <div id="upgradeChoiceView">
+                <div class="upgrade-heading">
+                    <span class="upgrade-kicker">НОВЫЙ УРОВЕНЬ · ВЫБЕРИ ОДНО УСИЛЕНИЕ</span>
+                    <h2 id="upgradeTitle">СИСТЕМА УЛУЧШЕНИЙ</h2>
+                    <p id="upgradeSubtitle">Выбери одну из трёх карт</p>
+                </div>
+                <div id="upgradeCards" class="upgrade-cards"></div>
+                <p class="upgrade-footnote">Игра поставлена на паузу, пока ты выбираешь</p>
+            </div>
+            <div id="upgradeWait" class="upgrade-wait hidden" aria-live="polite">
+                <div class="upgrade-wait-orbit"><span></span></div>
+                <span class="upgrade-kicker">КОМАНДА ЖДЁТ</span>
+                <h2>ПИЛОТ ВЫБИРАЕТ УСИЛЕНИЕ</h2>
+                <p>Игра продолжится сразу после выбора карты.</p>
+            </div>
+        </section>
+    </div>
+
     <script src="game.js"></script>
+    <script src="graphics-settings.js"></script>
+    <script src="boss-mechanics.js"></script>
+    <script src="wave-system.js"></script>
+    <script src="camera-world.js"></script>
 </body>
 </html>
