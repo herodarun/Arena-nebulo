@@ -305,15 +305,17 @@ function campaignSpawnWaveLogic() {
 
     if (campaignPhase === 'spawning') {
         waveTimer += 1;
+        if (waveTimer >= waveDuration) {
+            // Waves are timed runs: the countdown ending immediately freezes
+            // combat and opens the result screen, even if hazards remain.
+            completeCampaignWave();
+            return;
+        }
         if (!boss && waveTimer % waveSpawnInterval() === 0) drawWaveEncounter();
         spawnWaveBonus();
-        if (waveTimer >= waveDuration) campaignPhase = 'clearing';
     }
 
-    if (gameTime % 12 === 0 || campaignPhase === 'clearing') updateWaveProgressDisplay();
-    if (campaignPhase === 'clearing' && enemies.length === 0 && asteroids.length === 0 && !boss) {
-        completeCampaignWave();
-    }
+    if (gameTime % 12 === 0) updateWaveProgressDisplay();
 }
 
 window.spawnWaveLogic = campaignSpawnWaveLogic;

@@ -334,24 +334,41 @@
         </section>
     </div>
 
-    <!-- Placeholder meta shop; XP is recorded but not spent yet. -->
-    <div id="shopScreen" class="screen hidden" aria-hidden="true">
-        <section class="screen-content progression-panel shop-panel">
-            <span class="progression-kicker">АНГАР · МЕЖДУ ЗАБЕГАМИ</span>
-            <h2 class="progression-title">МАГАЗИН<br><span class="accent">ПИЛОТА</span></h2>
+    <!-- Full-screen hangar/shop: the previous run stays hidden behind this opaque screen. -->
+    <div id="shopScreen" class="screen hidden shop-screen" aria-hidden="true">
+        <div class="shop-cosmos" aria-hidden="true">
+            <span class="shop-flyby shop-flyby--near"><i></i></span>
+            <span class="shop-flyby shop-flyby--far"><i></i></span>
+        </div>
+
+        <header class="shop-top-frame">
+            <div class="shop-record-heading">
+                <span class="shop-frame-kicker">АНГАР · ПРОГРЕСС ПИЛОТА</span>
+                <h2>ДАННЫЕ ПИЛОТА</h2>
+            </div>
             <div class="shop-records">
                 <div class="shop-record-card">
-                    <span>МАКС. ВОЛНА</span>
+                    <span>МАКСИМАЛЬНАЯ ВОЛНА</span>
                     <strong id="metaMaxWave">0</strong>
                 </div>
                 <div class="shop-record-card">
-                    <span>ОПЫТ</span>
+                    <span>НАКОПЛЕННЫЙ ОПЫТ</span>
                     <strong id="metaCareerXp">0 XP</strong>
                 </div>
             </div>
-            <p class="progression-note">Опыт сохраняется. Покупки и улучшения в магазине появятся позже.</p>
+        </header>
+
+        <main class="shop-center-message">
+            <span class="shop-frame-kicker">МЕЖДУ ЗАБЕГАМИ</span>
+            <h1>NEBULA<br><span class="accent">DRIFT</span></h1>
+            <p>Подготовь корабль к следующему вылету.</p>
+            <span class="shop-availability"><i></i> СИСТЕМЫ КОРАБЛЯ ГОТОВЫ</span>
+        </main>
+
+        <footer class="shop-bottom-frame">
+            <span class="shop-frame-kicker">НОВАЯ МИССИЯ</span>
             <button id="newRunBtn" class="progression-button primary new-run-button" type="button">НАЧАТЬ НОВЫЙ ЗАБЕГ</button>
-        </section>
+        </footer>
     </div>
 
     <!-- Pause Overlay -->
