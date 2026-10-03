@@ -32,6 +32,13 @@ const WAVE_DIFFICULTY_PROFILES = Object.freeze({
 const WAVE_DIFFICULTY_ORDER = Object.freeze(['easy', 'normal', 'hard', 'impossible']);
 const WAVE_MAX_ENEMIES = 18;
 const WAVE_MAX_ASTEROIDS = 16;
+const CHARGER_MAX_ACTIVE = 2;
+const CHARGER_HIT_POINTS = 3;
+const CHARGER_DASH_SPEED = 42;
+const CHARGER_DODGE_WINDOW_FRAMES = 60;
+const CHARGER_COOLDOWN_FRAMES = 180;
+const CHARGER_RAGE_COOLDOWN_FRAMES = 60;
+const CHARGER_RAGE_TURN_RADIANS = 5 * Math.PI / 180;
 const CAREER_XP_STORAGE_KEY = 'nebulaDriftCareerXP';
 const MAX_WAVE_STORAGE_KEY = 'nebulaDriftMaxWave';
 
@@ -451,6 +458,62 @@ function steerCampaignEnemy(enemy, target, acceleration, maxSpeed) {
     enemy.angle = Math.atan2(enemy.vy, enemy.vx);
 }
 
+function aimChargerAtTarget(enemy, target) {
+    if (!target) return;
+    enemy.aimAngle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
+}
+
+function startChargerTelegraph(enemy, target, rage = false) {
+    aimChargerAtTarget(enemy, target);
+    enemy.state = 'telegraph';
+    enemy.stateTimer = CHARGER_DODGE_WINDOW_FRAMES;
+    if (rage) enemy.rage = true;
+}
+
+function startChargerDash(enemy, pace) {
+    enemy.state = 'dash';
+    enemy.stateTimer = 0;
+    enemy.dashSpeed = CHARGER_DASH_SPEED * pace;
+    enemy.dashFrames = 0;
+    enemy.vx = Math.cos(enemy.aimAngle) * enemy.dashSpeed;
+    enemy.vy = Math.sin(enemy.aimAngle) * enemy.dashSpeed;
+}
+
+function turnChargerTowardTarget(enemy, target, step) {
+    if (!target) return;
+    const targetAngle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
+    const angleDifference = Math.atan2(
+        Math.sin(targetAngle - enemy.aimAngle),
+        Math.cos(targetAngle - enemy.aimAngle)
+    );
+    const maxTurn = CHARGER_RAGE_TURN_RADIANS * step;
+    enemy.aimAngle += Math.max(-maxTurn, Math.min(maxTurn, angleDifference));
+    enemy.vx = Math.cos(enemy.aimAngle) * enemy.dashSpeed;
+    enemy.vy = Math.sin(enemy.aimAngle) * enemy.dashSpeed;
+}
+
+function finishChargerDash(enemy, target) {
+    enemy.completedDashes = (enemy.completedDashes || 0) + 1;
+    if (enemy.rage) {
+        // Keep rage dash starts on a one-second beat; show the next lane during
+        // whatever recovery time remains after the full-screen crossing.
+        aimChargerAtTarget(enemy, target);
+        enemy.state = 'rageCooldown';
+        enemy.stateTimer = Math.max(0, CHARGER_RAGE_COOLDOWN_FRAMES - enemy.dashFrames);
+    } else if (enemy.completedDashes >= 2) {
+        // After two full-screen charges, give two seconds of recovery and a
+        // final one-second dodge warning before rage mode begins.
+        enemy.state = 'preRageCooldown';
+        enemy.stateTimer = CHARGER_COOLDOWN_FRAMES - CHARGER_DODGE_WINDOW_FRAMES;
+    } else {
+        // Space the two opening dashes three seconds apart, including the warning.
+        enemy.state = 'dashCooldown';
+        enemy.stateTimer = CHARGER_COOLDOWN_FRAMES - CHARGER_DODGE_WINDOW_FRAMES;
+    }
+    enemy.vx *= 0.12;
+    enemy.vy *= 0.12;
+}
+
 function spawnEnemyProjectile(sniper, target) {
     const projectileCount = enemies.reduce((count, enemy) => count + (enemy.enemyProjectile ? 1 : 0), 0);
     if (projectileCount >= 8 || !target) return;
@@ -491,48 +554,43 @@ function updateEnemyEntities(delta = 1) {
         const target = updateCampaignEnemyTarget(enemy);
         if (enemy.type === 'charger') {
             enemy.state = enemy.state || 'approach';
-            enemy.stateTimer = (enemy.stateTimer === undefined ? 52 : enemy.stateTimer) - step;
+            if (enemy.stateTimer === undefined) enemy.stateTimer = 52;
 
             if (enemy.state === 'approach') {
+                enemy.stateTimer -= step;
                 steerCampaignEnemy(enemy, target, 0.032 * pace * step, 2.35 * pace);
                 enemy.x += enemy.vx * step;
                 enemy.y += enemy.vy * step;
                 if (enemy.stateTimer <= 0) {
-                    enemy.aimAngle = Math.atan2(target.y - enemy.y, target.x - enemy.x);
                     enemy.vx = 0;
                     enemy.vy = 0;
-                    enemy.state = 'telegraph';
-                    enemy.stateTimer = Math.max(22, 34 - Math.floor(wave / 4));
+                    startChargerTelegraph(enemy, target);
                 }
             } else if (enemy.state === 'telegraph') {
-                if (enemy.stateTimer <= 0) {
-                    enemy.state = 'dash';
-                    enemy.stateTimer = Math.max(16, 25 - Math.floor(wave / 5));
-                    enemy.dashSpeed = (7.4 + Math.min(2, wave * 0.12)) * pace;
-                    enemy.vx = Math.cos(enemy.aimAngle) * enemy.dashSpeed;
-                    enemy.vy = Math.sin(enemy.aimAngle) * enemy.dashSpeed;
-                }
+                enemy.stateTimer -= step;
+                if (enemy.stateTimer <= 0) startChargerDash(enemy, pace);
             } else if (enemy.state === 'dash') {
+                if (enemy.rage) turnChargerTowardTarget(enemy, target, step);
                 enemy.x += enemy.vx * step;
                 enemy.y += enemy.vy * step;
-                if (enemy.stateTimer <= 0 || enemy.x < -80 || enemy.x > canvas.width + 80 ||
-                    enemy.y < -80 || enemy.y > canvas.height + 80) {
-                    enemy.state = 'recover';
-                    enemy.stateTimer = 42;
-                    enemy.vx *= 0.35;
-                    enemy.vy *= 0.35;
+                enemy.dashFrames = (enemy.dashFrames || 0) + step;
+
+                const margin = enemy.radius + 16;
+                if (enemy.x < -margin || enemy.x > canvas.width + margin ||
+                    enemy.y < -margin || enemy.y > canvas.height + margin) {
+                    finishChargerDash(enemy, target);
                 }
-            } else {
-                enemy.x += enemy.vx * step;
-                enemy.y += enemy.vy * step;
-                enemy.vx *= 0.9;
-                enemy.vy *= 0.9;
+            } else if (enemy.state === 'dashCooldown' || enemy.state === 'preRageCooldown') {
+                enemy.stateTimer -= step;
                 if (enemy.stateTimer <= 0) {
-                    enemy.state = 'approach';
-                    enemy.stateTimer = 45 + Math.random() * 26;
+                    startChargerTelegraph(enemy, target, enemy.state === 'preRageCooldown');
                 }
+            } else if (enemy.state === 'rageCooldown') {
+                enemy.stateTimer -= step;
+                if (enemy.stateTimer <= 0) startChargerDash(enemy, pace);
             }
-            enemy.angle = enemy.state === 'dash' || enemy.state === 'telegraph'
+
+            enemy.angle = enemy.state === 'dash' || enemy.state === 'telegraph' || enemy.state === 'rageCooldown'
                 ? enemy.aimAngle : Math.atan2(enemy.vy, enemy.vx);
             continue;
         }
@@ -607,15 +665,18 @@ function spawnCampaignEnemy() {
     else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + edge; }
     else { x = -edge; y = Math.random() * canvas.height; }
 
+    const activeChargerCount = enemies.reduce((count, enemy) => count + (enemy && enemy.type === 'charger' ? 1 : 0), 0);
+    const canSpawnCharger = campaignDifficulty.id !== 'easy' && activeChargerCount < CHARGER_MAX_ACTIVE;
     const roll = Math.random();
     let type = 'mine';
     if (wave >= 5 && roll < 0.15) type = 'pulse';
     else if (wave >= 4 && roll < 0.32) type = 'brute';
     else if (wave >= 3 && roll < 0.56) type = 'sniper';
-    else if (wave >= 2 && roll < 0.79) type = 'charger';
+    else if (wave >= 2 && roll < 0.79 && canSpawnCharger) type = 'charger';
 
-    if (campaignDifficulty.id === 'hard' && type === 'mine' && wave >= 3 && roll > 0.36) type = 'charger';
+    if (campaignDifficulty.id === 'hard' && type === 'mine' && wave >= 3 && roll > 0.36 && canSpawnCharger) type = 'charger';
     if (campaignDifficulty.id === 'impossible' && type === 'mine' && wave >= 3 && roll > 0.22) type = 'sniper';
+    if (type === 'charger' && !canSpawnCharger) type = 'mine';
 
     const waveHealth = 1 + Math.min(0.65, Math.max(0, wave - 1) * 0.035);
     const healthScale = waveHealth * campaignDifficulty.enemyHealth;
@@ -628,7 +689,15 @@ function spawnCampaignEnemy() {
     if (type === 'pulse') {
         enemies.push({ ...baseEnemy, type, radius: 24, hp: Math.ceil(2 * healthScale), maxHp: Math.ceil(2 * healthScale), state: 'orbit', stateTimer: 0 });
     } else if (type === 'charger') {
-        enemies.push({ ...baseEnemy, type, radius: 17, hp: Math.ceil(2 * healthScale), maxHp: Math.ceil(2 * healthScale) });
+        enemies.push({
+            ...baseEnemy,
+            type,
+            radius: 17,
+            hp: CHARGER_HIT_POINTS,
+            maxHp: CHARGER_HIT_POINTS,
+            completedDashes: 0,
+            rage: false
+        });
     } else if (type === 'sniper') {
         enemies.push({ ...baseEnemy, type, radius: 18, hp: Math.ceil(2 * healthScale), maxHp: Math.ceil(2 * healthScale), state: 'tracking', fireTimer: 90 + Math.random() * 55 });
     } else if (type === 'brute') {
@@ -685,29 +754,55 @@ function drawEnemies() {
                 ctx.stroke();
             }
         } else if (enemy.type === 'charger') {
-            if (enemy.state === 'telegraph') {
-                const lineLength = Math.hypot(canvas.width, canvas.height);
+            const showingLane = enemy.state === 'telegraph' || enemy.state === 'rageCooldown';
+            if (showingLane) {
+                const lineLength = Math.hypot(canvas.width, canvas.height) * 1.4;
                 ctx.save();
                 ctx.globalAlpha = 0.5 + 0.25 * Math.sin(gameTime * 0.35);
                 ctx.setLineDash([8, 7]);
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
                 ctx.lineTo(Math.cos(enemy.aimAngle) * lineLength, Math.sin(enemy.aimAngle) * lineLength);
-                ctx.strokeStyle = '#ffad57';
-                ctx.lineWidth = 2;
+                ctx.strokeStyle = enemy.rage ? '#ff477a' : '#ffad57';
+                ctx.lineWidth = enemy.rage ? 3 : 2;
                 ctx.stroke();
                 ctx.restore();
             }
-            ctx.rotate(enemy.state === 'dash' || enemy.state === 'telegraph' ? enemy.aimAngle : enemy.angle || 0);
+
+            // Three lit segments make the charger's three-shot health clear.
+            const hpSegments = CHARGER_HIT_POINTS;
+            const segmentGap = 2;
+            const segmentWidth = (enemy.radius * 2 - segmentGap * (hpSegments - 1)) / hpSegments;
+            const remainingHp = Math.max(0, Math.ceil(enemy.hp || 0));
+            for (let segment = 0; segment < hpSegments; segment += 1) {
+                ctx.fillStyle = segment < remainingHp
+                    ? (enemy.rage ? '#ff386b' : '#ffc36c')
+                    : 'rgba(18, 22, 32, 0.9)';
+                ctx.fillRect(
+                    -enemy.radius + segment * (segmentWidth + segmentGap),
+                    -enemy.radius - 9,
+                    segmentWidth,
+                    4
+                );
+            }
+
+            if (enemy.rage && quality.laserGlow) {
+                ctx.shadowColor = '#ff285f';
+                ctx.shadowBlur = 14;
+            }
+            ctx.rotate(enemy.state === 'dash' || enemy.state === 'telegraph' || enemy.state === 'rageCooldown'
+                ? enemy.aimAngle : enemy.angle || 0);
             ctx.beginPath();
             ctx.moveTo(enemy.radius * 1.35, 0);
             ctx.lineTo(-enemy.radius * 0.58, -enemy.radius * 0.78);
             ctx.lineTo(-enemy.radius * 0.27, 0);
             ctx.lineTo(-enemy.radius * 0.58, enemy.radius * 0.78);
             ctx.closePath();
-            ctx.fillStyle = enemy.state === 'dash' ? '#ff6f4f' : '#bd603e';
+            ctx.fillStyle = enemy.rage
+                ? (enemy.state === 'dash' ? '#ff174f' : '#a92e52')
+                : (enemy.state === 'dash' ? '#ff6f4f' : '#bd603e');
             ctx.fill();
-            ctx.strokeStyle = enemy.state === 'telegraph' ? '#ffe1aa' : '#ffb77a';
+            ctx.strokeStyle = enemy.rage ? '#ffd0de' : (enemy.state === 'telegraph' ? '#ffe1aa' : '#ffb77a');
             ctx.lineWidth = 2;
             ctx.stroke();
             ctx.beginPath();
