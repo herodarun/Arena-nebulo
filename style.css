@@ -2744,6 +2744,17 @@ html[data-graphics-quality="low"] .damage-vignette {
     letter-spacing: 0.12em;
 }
 
+.language-control-icon {
+    display: inline-grid;
+    width: 1.15rem;
+    height: 1.15rem;
+    flex: 0 0 auto;
+    place-items: center;
+    font-size: 0.98rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 5px rgba(103, 211, 255, 0.48));
+}
+
 .language-control select {
     min-width: 9.2rem;
     padding: 0.52rem 2rem 0.52rem 0.72rem;

@@ -33,6 +33,7 @@ const BOSS_ARCHETYPES = Object.freeze({
 });
 
 const BOSS_SEQUENCE = Object.freeze(['bulwark', 'hunter', 'singularity']);
+const BOSS_PROJECTILE_SPEED_MULTIPLIER = 4;
 
 function getBossArenaBounds() {
     return typeof getGameWorldBounds === 'function'
@@ -142,9 +143,9 @@ function spawnBulwarkVolley() {
     if (!target || !boss) return;
 
     const tier = boss.tier || 1;
-    const boltCount = Math.min(5, 3 + Math.floor((tier - 1) / 2));
-    const totalSpread = 0.22 * (boltCount - 1);
-    const speed = 3.7 + Math.min(1.4, tier * 0.17);
+    const boltCount = 6;
+    const totalSpread = 0.2;
+    const speed = (3.7 + Math.min(1.4, tier * 0.17)) * BOSS_PROJECTILE_SPEED_MULTIPLIER;
     const baseAngle = boss.aimAngle;
 
     for (let index = 0; index < boltCount; index += 1) {
@@ -162,6 +163,41 @@ function spawnBulwarkVolley() {
     }
 }
 
+function getHunterDashBoundaryDistance(angle, bounds) {
+    if (!boss) return 0;
+
+    const minX = boss.radius;
+    const minY = boss.radius;
+    const maxX = Math.max(minX, bounds.width - boss.radius);
+    const maxY = Math.max(minY, bounds.height - boss.radius);
+    const dx = Math.cos(angle);
+    const dy = Math.sin(angle);
+    let distance = Infinity;
+
+    if (dx > 1e-6) distance = Math.min(distance, (maxX - boss.x) / dx);
+    else if (dx < -1e-6) distance = Math.min(distance, (minX - boss.x) / dx);
+    if (dy > 1e-6) distance = Math.min(distance, (maxY - boss.y) / dy);
+    else if (dy < -1e-6) distance = Math.min(distance, (minY - boss.y) / dy);
+
+    return Number.isFinite(distance) ? Math.max(0, distance) : 0;
+}
+
+function aimHunterAcrossArena(target) {
+    const bounds = getBossArenaBounds();
+    const targetAngle = Math.atan2(target.y - boss.y, target.x - boss.x);
+    const forwardDistance = getHunterDashBoundaryDistance(targetAngle, bounds);
+    const reverseAngle = targetAngle + Math.PI;
+    const reverseDistance = getHunterDashBoundaryDistance(reverseAngle, bounds);
+
+    if (reverseDistance > forwardDistance) {
+        boss.dashAngle = reverseAngle;
+        boss.dashDistance = reverseDistance;
+    } else {
+        boss.dashAngle = targetAngle;
+        boss.dashDistance = forwardDistance;
+    }
+}
+
 function beginBossAttack() {
     if (!boss) return;
     const target = getBossTarget();
@@ -174,7 +210,9 @@ function beginBossAttack() {
         boss.aimAngle = Math.atan2(target.y - boss.y, target.x - boss.x);
         setBossAction('barrageTell', Math.max(30, 48 - boss.tier));
     } else if (boss.kind === 'hunter') {
-        boss.dashAngle = Math.atan2(target.y - boss.y, target.x - boss.x);
+        boss.returnX = boss.x;
+        boss.returnY = boss.y;
+        aimHunterAcrossArena(target);
         setBossAction('chargeTell', Math.max(28, 43 - boss.tier));
     } else {
         boss.fieldX = target.x;
@@ -215,8 +253,7 @@ function updateBulwarkBoss(delta) {
 }
 
 function updateHunterBoss(delta) {
-    const canStrafe = boss.action !== 'chargeTell' && boss.action !== 'dash';
-    if (canStrafe) {
+    if (boss.action === 'idle') {
         const bounds = getBossArenaBounds();
         const minX = boss.radius + 24;
         const maxX = Math.max(minX, bounds.width - boss.radius - 24);
@@ -226,9 +263,6 @@ function updateHunterBoss(delta) {
             boss.drift *= -1;
         }
         boss.y = boss.entryY + Math.sin(boss.age * 0.022) * 15;
-    }
-
-    if (boss.action === 'idle') {
         boss.attackTimer -= delta;
         if (boss.attackTimer <= 0) beginBossAttack();
         return;
@@ -239,8 +273,10 @@ function updateHunterBoss(delta) {
         if (boss.actionTimer <= 0) {
             boss.dashDrops = 0;
             boss.dashDropTimer = 5;
-            boss.dashSpeed = 7.8 + Math.min(2.2, boss.tier * 0.35);
-            setBossAction('dash', Math.max(16, 27 - Math.floor(boss.tier / 3)));
+            boss.dashTravelled = 0;
+            boss.dashSpeed = 23 + Math.min(8, boss.tier * 0.75);
+            const dashFrames = Math.max(1, Math.ceil(boss.dashDistance / boss.dashSpeed) + 1);
+            setBossAction('dash', dashFrames);
         }
         return;
     }
@@ -248,14 +284,20 @@ function updateHunterBoss(delta) {
     if (boss.action === 'dash') {
         const previousX = boss.x;
         const previousY = boss.y;
-        boss.x += Math.cos(boss.dashAngle) * boss.dashSpeed * delta;
-        boss.y += Math.sin(boss.dashAngle) * boss.dashSpeed * delta;
+        const distanceRemaining = Math.max(0, boss.dashDistance - boss.dashTravelled);
+        const moveDistance = Math.min(boss.dashSpeed * delta, distanceRemaining);
+        boss.x += Math.cos(boss.dashAngle) * moveDistance;
+        boss.y += Math.sin(boss.dashAngle) * moveDistance;
+        boss.dashTravelled += moveDistance;
         boss.actionTimer -= delta;
         boss.dashDropTimer -= delta;
 
         const maxDrops = Math.min(5, 3 + Math.floor((boss.tier - 1) / 2));
         if (boss.dashDropTimer <= 0 && boss.dashDrops < maxDrops) {
-            spawnBossHazard('bossMine', previousX, previousY, 0, 0, 12, 175);
+            const sideAngle = boss.dashAngle + Math.PI * 0.5;
+            const sideSpeed = 9 + Math.min(3, boss.tier * 0.25);
+            spawnBossHazard('bossMine', previousX, previousY, sideAngle, sideSpeed, 12, 175);
+            spawnBossHazard('bossMine', previousX, previousY, sideAngle + Math.PI, sideSpeed, 12, 175);
             boss.dashDrops += 1;
             boss.dashDropTimer = 6;
         }
@@ -263,7 +305,7 @@ function updateHunterBoss(delta) {
         const bounds = getBossArenaBounds();
         const outOfArena = boss.x < boss.radius || boss.x > bounds.width - boss.radius ||
             boss.y < boss.radius || boss.y > bounds.height - boss.radius;
-        if (boss.actionTimer <= 0 || outOfArena) {
+        if (boss.actionTimer <= 0 || boss.dashTravelled >= boss.dashDistance || outOfArena) {
             boss.x = Math.max(boss.radius, Math.min(bounds.width - boss.radius, boss.x));
             boss.y = Math.max(boss.radius, Math.min(bounds.height - boss.radius, boss.y));
             setBossAction('recover', 38);
@@ -272,6 +314,11 @@ function updateHunterBoss(delta) {
     }
 
     if (boss.action === 'recover') {
+        const returnX = Number.isFinite(boss.returnX) ? boss.returnX : boss.x;
+        const returnY = Number.isFinite(boss.returnY) ? boss.returnY : boss.entryY;
+        const returnStep = Math.min(1, 0.12 * delta);
+        boss.x += (returnX - boss.x) * returnStep;
+        boss.y += (returnY - boss.y) * returnStep;
         boss.actionTimer -= delta;
         if (boss.actionTimer <= 0) finishBossAttack(125);
     }
@@ -493,8 +540,8 @@ function drawBossTelegraph() {
     const pulse = 0.45 + 0.25 * Math.sin(gameTime * 0.2);
 
     if (boss.action === 'barrageTell') {
-        const boltCount = Math.min(5, 3 + Math.floor((boss.tier - 1) / 2));
-        const totalSpread = 0.22 * (boltCount - 1);
+        const boltCount = 6;
+        const totalSpread = 0.2;
         const range = Math.hypot(bounds.width, bounds.height);
         ctx.globalAlpha = pulse;
         ctx.strokeStyle = quality.gradientMaterials ? '#ff9f57' : '#b57a58';

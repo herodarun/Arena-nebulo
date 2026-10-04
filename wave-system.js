@@ -98,7 +98,9 @@ window.getWaveDifficultyWeights = () => ({ ...waveDifficultyWeights });
 const WAVE_MAX_ASTEROIDS = 16;
 const CHARGER_MAX_ACTIVE = 2;
 const CHARGER_HIT_POINTS = 3;
-const CHARGER_DASH_SPEED = 42;
+// Increase the dash itself without changing the telegraph or cooldown cadence.
+const CHARGER_DASH_SPEED = 60;
+const CAMPAIGN_PROJECTILE_SPEED_MULTIPLIER = 3.5;
 const CHARGER_DODGE_WINDOW_FRAMES = 60;
 const CHARGER_COOLDOWN_FRAMES = 180;
 const CHARGER_RAGE_ATTACK_INTERVAL_SECONDS = 1.43;
@@ -639,7 +641,8 @@ function spawnEnemyProjectile(sniper, target) {
     const projectileCount = enemies.reduce((count, enemy) => count + (enemy.enemyProjectile ? 1 : 0), 0);
     if (projectileCount >= 8 || !target) return;
     const angle = sniper.aimAngle;
-    const speed = (5.1 + Math.min(1.4, wave * 0.06)) * campaignDifficulty.enemySpeed;
+    const speed = (5.1 + Math.min(1.4, wave * 0.06)) *
+        campaignDifficulty.enemySpeed * CAMPAIGN_PROJECTILE_SPEED_MULTIPLIER;
     enemies.push({
         type: 'enemyBolt',
         enemyProjectile: true,
@@ -658,6 +661,7 @@ function spawnEnemyProjectile(sniper, target) {
 function spawnRivalShipBolt(ship, angle, speed, radius = 7) {
     const projectileCount = enemies.reduce((count, enemy) => count + (enemy && enemy.enemyProjectile ? 1 : 0), 0);
     if (projectileCount >= 24) return;
+    const projectileSpeed = speed * CAMPAIGN_PROJECTILE_SPEED_MULTIPLIER;
 
     enemies.push({
         type: 'enemyBolt',
@@ -665,8 +669,8 @@ function spawnRivalShipBolt(ship, angle, speed, radius = 7) {
         rivalProjectile: true,
         x: ship.x + Math.cos(angle) * (ship.radius + 5),
         y: ship.y + Math.sin(angle) * (ship.radius + 5),
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
+        vx: Math.cos(angle) * projectileSpeed,
+        vy: Math.sin(angle) * projectileSpeed,
         radius,
         hp: 1,
         angle,
