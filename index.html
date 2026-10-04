@@ -38,6 +38,16 @@
             <button id="graphicsSettingsBtn" class="settings-menu-button" type="button" aria-haspopup="dialog">
                 <span aria-hidden="true">⚙</span> НАСТРОЙКИ ГРАФИКИ
             </button>
+            <div class="language-control">
+                <label for="languageSelect">ЯЗЫК</label>
+                <select id="languageSelect" data-language-picker aria-label="Язык интерфейса">
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                    <option value="es">Español</option>
+                    <option value="uk">Українська</option>
+                </select>
+            </div>
 
             <!-- Network Setup Panel -->
             <div class="net-panel hidden" id="netPanel">
@@ -346,6 +356,16 @@
             <div class="shop-record-heading">
                 <span class="shop-frame-kicker">АНГАР · ПРОГРЕСС ПИЛОТА</span>
                 <h2>ДАННЫЕ ПИЛОТА</h2>
+                <div class="language-control language-control--hangar">
+                    <label for="languageSelectHangar">ЯЗЫК</label>
+                    <select id="languageSelectHangar" data-language-picker aria-label="Язык интерфейса">
+                        <option value="ru">Русский</option>
+                        <option value="en">English</option>
+                        <option value="de">Deutsch</option>
+                        <option value="es">Español</option>
+                        <option value="uk">Українська</option>
+                    </select>
+                </div>
             </div>
             <div class="shop-records">
                 <div class="shop-record-card">
@@ -455,6 +475,16 @@
             <button id="pauseGraphicsSettingsBtn" class="settings-menu-button pause-settings-button" type="button" aria-haspopup="dialog">
                 ⚙ НАСТРОЙКИ ГРАФИКИ
             </button>
+            <div class="language-control">
+                <label for="languageSelectPause">ЯЗЫК</label>
+                <select id="languageSelectPause" data-language-picker aria-label="Язык интерфейса">
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                    <option value="es">Español</option>
+                    <option value="uk">Українська</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -523,5 +553,6 @@
     <script src="wave-system.js"></script>
     <script src="camera-world.js"></script>
     <script src="hangar-tech.js"></script>
+    <script src="i18n.js"></script>
 </body>
 </html>

@@ -2731,3 +2731,69 @@ html[data-graphics-quality="low"] .damage-vignette {
     .hangar-tech-window,
     .hangar-tech-overlay::before { animation: none; transition: none; }
 }
+
+/* Shared language selector for the title screen, pause menu, and hangar. */
+.language-control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    margin: 0.15rem auto 1rem;
+    color: rgba(190, 222, 245, 0.72);
+    font: 700 0.62rem 'Orbitron', sans-serif;
+    letter-spacing: 0.12em;
+}
+
+.language-control select {
+    min-width: 9.2rem;
+    padding: 0.52rem 2rem 0.52rem 0.72rem;
+    border: 1px solid rgba(111, 207, 247, 0.38);
+    border-radius: 8px;
+    background: rgba(8, 19, 35, 0.92);
+    color: #e5f6ff;
+    font: 600 0.78rem 'Rajdhani', sans-serif;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+
+.language-control select:hover,
+.language-control select:focus-visible {
+    border-color: rgba(116, 220, 255, 0.85);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(77, 190, 239, 0.14);
+}
+
+.language-control option {
+    background: #0b1728;
+    color: #e5f6ff;
+}
+
+.language-control--hangar {
+    justify-content: flex-start;
+    margin: 0.48rem 0 0;
+    font-size: 0.55rem;
+}
+
+.language-control--hangar select {
+    min-width: 7.6rem;
+    padding: 0.34rem 1.7rem 0.34rem 0.55rem;
+    font-size: 0.72rem;
+}
+
+@media (max-width: 760px) {
+    .language-control--hangar {
+        justify-content: center;
+        margin: 0.38rem auto 0;
+    }
+}
+
+@media (max-width: 480px) {
+    #startScreen .language-control,
+    #pauseOverlay .language-control {
+        margin-bottom: 0.55rem;
+    }
+
+    .language-control select {
+        min-width: 8.5rem;
+    }
+}
