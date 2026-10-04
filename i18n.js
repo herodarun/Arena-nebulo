@@ -351,6 +351,44 @@
         ['комната', 'room', 'Raum', 'sala', 'кімната'],
         ['комнаты', 'room', 'Raum', 'sala', 'кімнати'],
 
+        // Campaign-run active and passive upgrade cards.
+        ['Сверхзвуковая ударная волна', 'Sonic Shockwave', 'Überschall-Schockwelle', 'Onda de choque supersónica', 'Надзвукова ударна хвиля'],
+        ['Активка: отталкивает врагов и астероиды. Ранги расширяют радиус и сокращают перезарядку.', 'Active: pushes enemies and asteroids away. Ranks expand its radius and shorten cooldown.', 'Aktiv: stößt Gegner und Asteroiden zurück. Ränge vergrößern den Radius und verkürzen die Abklingzeit.', 'Activa: repele a enemigos y asteroides. Cada rango aumenta el radio y reduce el tiempo de recarga.', 'Активка: відштовхує ворогів і астероїди. Ранги збільшують радіус і скорочують перезаряджання.'],
+        ['Фазовый рывок', 'Phase Dash', 'Phasensprint', 'Impulso de fase', 'Фазовий ривок'],
+        ['Активка: быстрый рывок по курсу с короткой неуязвимостью.', 'Active: dash forward with a brief window of invulnerability.', 'Aktiv: ein schneller Vorstoß mit kurzer Unverwundbarkeit.', 'Activa: un impulso rápido en la dirección de la nave con breve invulnerabilidad.', 'Активка: швидкий ривок за курсом із короткою невразливістю.'],
+        ['Расщепление луча', 'Beam Splitter', 'Strahlaufteilung', 'Haz dividido', 'Розщеплення променя'],
+        ['Пассивка: добавляет лучи веером; каждый луч наносит 50% урона.', 'Passive: adds a fan of shots; each shot deals 50% damage.', 'Passiv: ergänzt einen Schussfächer; jeder Schuss verursacht 50% Schaden.', 'Pasiva: añade disparos en abanico; cada uno inflige un 50% de daño.', 'Пасивка: додає постріли віялом; кожен завдає 50% шкоди.'],
+        ['Орбитальные обломки', 'Orbital Debris', 'Orbitale Trümmer', 'Escombros orbitales', 'Орбітальні уламки'],
+        ['Пассивка: астероиды вращаются вокруг корабля и отбрасывают задетые цели. До 9 штук.', 'Passive: asteroids orbit the ship and knock back targets they hit. Up to nine.', 'Passiv: Asteroiden umkreisen das Schiff und stoßen getroffene Ziele zurück. Bis zu neun.', 'Pasiva: asteroides orbitan la nave y repelen a los objetivos que tocan. Hasta nueve.', 'Пасивка: астероїди обертаються навколо корабля й відкидають зачеплені цілі. До 9 штук.'],
+        ['Манёвренный корпус', 'Agile Hull', 'Wendiger Rumpf', 'Casco ágil', 'Маневрений корпус'],
+        ['Пассивка: каждый ранг уменьшает инерцию и делает управление отзывчивее.', 'Passive: each rank reduces drift and makes steering more responsive.', 'Passiv: Jeder Rang verringert das Nachdriften und verbessert die Steuerung.', 'Pasiva: cada rango reduce la inercia y mejora la respuesta del control.', 'Пасивка: кожен ранг зменшує інерцію та робить керування чутливішим.'],
+        ['Железная воля', 'Iron Will', 'Eiserner Wille', 'Voluntad de hierro', 'Залізна воля'],
+        ['Пассивка · один раз за забег: переживает смертельное попадание, возвращая 1 щит.', 'Passive · once per run: survive a fatal hit and restore 1 shield.', 'Passiv · einmal pro Lauf: übersteht einen tödlichen Treffer und stellt 1 Schild wieder her.', 'Pasiva · una vez por partida: sobrevive a un impacto letal y recupera 1 escudo.', 'Пасивка · один раз за забіг: переживає смертельне влучання та відновлює 1 щит.'],
+        ['⌨ НАЗНАЧИТЬ АКТИВКИ', '⌨ BIND ABILITIES', '⌨ FÄHIGKEITEN BELEGEN', '⌨ ASIGNAR HABILIDADES', '⌨ ПРИЗНАЧИТИ АКТИВКИ'],
+        ['УПРАВЛЕНИЕ · КАМПАНИЯ 1P', 'CONTROLS · 1P CAMPAIGN', 'STEUERUNG · 1P-KAMPAGNE', 'CONTROLES · CAMPAÑA 1P', 'КЕРУВАННЯ · КАМПАНІЯ 1P'],
+        ['КЛАВИШИ АКТИВОК', 'ABILITY KEYS', 'FÄHIGKEITSTASTEN', 'TECLAS DE HABILIDAD', 'КЛАВІШІ АКТИВОК'],
+        ['Нажми кнопку действия, затем клавишу. Настройка сохраняется на этом устройстве.', 'Choose an action, then press a key. Your binding is saved on this device.', 'Wähle eine Aktion und drücke dann eine Taste. Die Belegung wird auf diesem Gerät gespeichert.', 'Elige una acción y pulsa una tecla. La asignación se guarda en este dispositivo.', 'Вибери дію, а потім натисни клавішу. Призначення зберігається на цьому пристрої.'],
+        ['Отбрасывает врагов и астероиды', 'Knocks back enemies and asteroids', 'Stößt Gegner und Asteroiden zurück', 'Repele a enemigos y asteroides', 'Відкидає ворогів і астероїди'],
+        ['Короткая неуязвимость при рывке', 'Brief invulnerability during the dash', 'Kurze Unverwundbarkeit während des Sprints', 'Breve invulnerabilidad durante el impulso', 'Коротка невразливість під час ривка'],
+        ['Выбери действие и нажми подходящую клавишу.', 'Choose an action, then press a suitable key.', 'Wähle eine Aktion und drücke eine passende Taste.', 'Elige una acción y pulsa una tecla adecuada.', 'Вибери дію та натисни відповідну клавішу.'],
+        ['Нажми клавишу без модификаторов.', 'Press a key without modifiers.', 'Drücke eine Taste ohne Zusatztasten.', 'Pulsa una tecla sin modificadores.', 'Натисни клавішу без модифікаторів.'],
+        ['Выбери букву, цифру или F-клавишу без модификаторов.', 'Choose a letter, number, or F-key without modifiers.', 'Wähle einen Buchstaben, eine Zahl oder F-Taste ohne Zusatztasten.', 'Elige una letra, un número o una tecla F sin modificadores.', 'Вибери літеру, цифру або клавішу F без модифікаторів.'],
+        ['Назначение отменено.', 'Binding cancelled.', 'Tastenbelegung abgebrochen.', 'Asignación cancelada.', 'Призначення скасовано.'],
+        ['Назначение сохранено.', 'Binding saved.', 'Tastenbelegung gespeichert.', 'Asignación guardada.', 'Призначення збережено.'],
+        ['Активные способности', 'Active abilities', 'Aktive Fähigkeiten', 'Habilidades activas', 'Активні здібності'],
+        ['УДАРНАЯ ВОЛНА', 'SHOCKWAVE', 'SCHOCKWELLE', 'ONDA DE CHOQUE', 'УДАРНА ХВИЛЯ'],
+        ['ФАЗОВЫЙ РЫВОК', 'PHASE DASH', 'PHASENSPRINT', 'IMPULSO DE FASE', 'ФАЗОВИЙ РИВОК'],
+        ['ЗАРЯД ·', 'COOLDOWN ·', 'ABKLINGZEIT ·', 'RECARGA ·', 'ПЕРЕЗАРЯДЖАННЯ ·'],
+        ['РЕЖИМ ОТЛАДКИ', 'DEBUG MODE', 'DEBUG-MODUS', 'MODO DEPURACIÓN', 'РЕЖИМ НАЛАГОДЖЕННЯ'],
+        ['+1000 XP · КАРТЫ УЛУЧШЕНИЙ', '+1000 XP · UPGRADE CARDS', '+1000 XP · UPGRADES', '+1000 XP · CARTAS DE MEJORA', '+1000 XP · КАРТКИ ПОКРАЩЕНЬ'],
+        ['ПОЯВЛЕНИЕ БОССА', 'SPAWN BOSS', 'BOSS ERSCHEINEN LASSEN', 'APARECER JEFE', 'ВИКЛИКАТИ БОСА'],
+        ['УБРАТЬ ВРАГОВ', 'CLEAR ENEMIES', 'GEGNER ENTFERNEN', 'ELIMINAR ENEMIGOS', 'ПРИБРАТИ ВОРОГІВ'],
+        ['НЕУЯЗВИМОСТЬ: ВЫКЛ', 'INVULNERABILITY: OFF', 'UNVERWUNDBARKEIT: AUS', 'INVULNERABILIDAD: NO', 'НЕВРАЗЛИВІСТЬ: ВИМК.'],
+        ['НЕУЯЗВИМОСТЬ: ВКЛ', 'INVULNERABILITY: ON', 'UNVERWUNDBARKEIT: EIN', 'INVULNERABILIDAD: SÍ', 'НЕВРАЗЛИВІСТЬ: УВІМК.'],
+        ['ОРБИТАЛЬНЫЙ УДАР', 'ORBITAL STRIKE', 'ORBITALSCHLAG', 'IMPACTO ORBITAL', 'ОРБІТАЛЬНИЙ УДАР'],
+        ['ЖЕЛЕЗНАЯ ВОЛЯ!', 'IRON WILL!', 'EISERNER WILLE!', '¡VOLUNTAD DE HIERRO!', 'ЗАЛІЗНА ВОЛЯ!'],
+        ['Закрыть назначение клавиш', 'Close key bindings', 'Tastenbelegung schließen', 'Cerrar asignación de teclas', 'Закрити призначення клавіш'],
+
         // Boss display names.
         ['СТРАЖ-ПАНЦИРЬ', 'SHELL WARDEN', 'PANZERWÄCHTER', 'GUARDIÁN ACORAZADO', 'ПАНЦИРНИЙ ВАРТОВИЙ'],
         ['ПЕРЕХВАТЧИК', 'INTERCEPTOR', 'ABFANGJÄGER', 'INTERCEPTOR', 'ПЕРЕХОПЛЮВАЧ'],
@@ -433,6 +471,24 @@
         match = source.match(/^УСИЛЕНИЕ\s*·\s*РАНГ\s*(\d+)$/iu);
         if (match) return {
             en: `UPGRADE · RANK ${match[1]}`, de: `UPGRADE · RANG ${match[1]}`, es: `MEJORA · RANGO ${match[1]}`, uk: `ПОСИЛЕННЯ · РАНГ ${match[1]}`
+        }[language];
+
+        match = source.match(/^(АКТИВКА|ПАССИВКА)\s*·\s*РАНГ\s*(\d+)$/iu);
+        if (match) {
+            const isActive = match[1].toLocaleUpperCase('ru-RU') === 'АКТИВКА';
+            const kind = {
+                en: isActive ? 'ACTIVE' : 'PASSIVE',
+                de: isActive ? 'AKTIV' : 'PASSIV',
+                es: isActive ? 'ACTIVA' : 'PASIVA',
+                uk: isActive ? 'АКТИВКА' : 'ПАСИВКА'
+            }[language];
+            const rank = { en: 'RANK', de: 'RANG', es: 'RANGO', uk: 'РАНГ' }[language];
+            return `${kind} · ${rank} ${match[2]}`;
+        }
+
+        match = source.match(/^ЗАРЯД\s*·\s*(\d+)с$/iu);
+        if (match) return {
+            en: `COOLDOWN · ${match[1]}s`, de: `ABKLINGZEIT · ${match[1]} s`, es: `RECARGA · ${match[1]} s`, uk: `ПЕРЕЗАРЯДЖАННЯ · ${match[1]} с`
         }[language];
 
         match = source.match(/^УРОВЕНЬ\s+(\d+)$/iu);

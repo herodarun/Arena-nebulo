@@ -719,3 +719,94 @@ function drawBoss() {
     ctx.restore();
     drawBossTelegraph();
 }
+
+function drawBossPlanetBackground() {
+    if (!boss || gameMode !== '1P') return;
+
+    const quality = getGraphicsPreset();
+    const palettes = {
+        bulwark: { base: '#9c3f32', light: '#ffb05f', dark: '#351e42', band: '#e27147', ring: '#ffc177' },
+        hunter: { base: '#287e9c', light: '#a3f6ff', dark: '#102b58', band: '#48b4c4', ring: '#7ae7f4' },
+        singularity: { base: '#65459b', light: '#dcb5ff', dark: '#18132f', band: '#a06ad0', ring: '#cba0ff' }
+    };
+    const colors = palettes[boss.kind] || palettes.bulwark;
+    const bounds = getBossArenaBounds();
+    const radius = Math.min(canvas.width, canvas.height) * 0.235;
+    const x = Math.min(bounds.width - radius * 0.78, boss.x + canvas.width * 0.31);
+    const y = Math.min(bounds.height - radius * 0.72, Math.max(radius, (boss.entryY || canvas.height * 0.16) + canvas.height * 0.32));
+    const rotation = (boss.tier || 1) * 0.19;
+
+    ctx.save();
+    ctx.globalAlpha = quality.gradientMaterials ? 0.68 : 0.49;
+    if (quality.laserGlow) {
+        ctx.shadowColor = colors.ring;
+        ctx.shadowBlur = 22;
+    }
+
+    // A thin ring behind the planet makes the three boss arenas easy to tell
+    // apart without changing the silhouette of any combat model.
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius * 1.63, radius * 0.43, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = colors.ring;
+    ctx.lineWidth = Math.max(2, radius * 0.035);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    const globe = quality.gradientMaterials
+        ? ctx.createRadialGradient(x - radius * 0.35, y - radius * 0.4, radius * 0.04, x, y, radius * 1.15)
+        : null;
+    if (globe) {
+        globe.addColorStop(0, colors.light);
+        globe.addColorStop(0.38, colors.base);
+        globe.addColorStop(1, colors.dark);
+    }
+    ctx.fillStyle = globe || colors.base;
+    ctx.fill();
+
+    if (quality.surfaceDetail) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x, y, radius * 0.99, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.translate(x, y);
+        ctx.rotate(-rotation * 0.35);
+        ctx.globalAlpha *= 0.34;
+        for (let band = -2; band <= 2; band += 1) {
+            const bandY = band * radius * 0.37 + Math.sin((boss.tier || 1) + band) * radius * 0.05;
+            ctx.fillStyle = band % 2 === 0 ? colors.band : colors.dark;
+            ctx.fillRect(-radius * 1.2, bandY, radius * 2.4, radius * 0.105);
+        }
+        ctx.globalAlpha = 0.35;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, radius * 0.88, radius * 0.17, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = colors.light;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    ctx.globalAlpha = quality.gradientMaterials ? 0.55 : 0.38;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, -Math.PI * 0.35, Math.PI * 0.42);
+    ctx.strokeStyle = colors.light;
+    ctx.lineWidth = Math.max(1.5, radius * 0.012);
+    ctx.stroke();
+
+    if (quality.surfaceDetail && boss.kind === 'singularity') {
+        ctx.beginPath();
+        ctx.arc(x, y, radius * 0.16, 0, Math.PI * 2);
+        ctx.fillStyle = '#0a0718';
+        ctx.fill();
+        ctx.strokeStyle = colors.light;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}

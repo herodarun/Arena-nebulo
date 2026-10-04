@@ -258,6 +258,19 @@
         </div>
     </div>
 
+    <div id="runAbilityHud" class="run-ability-hud hidden" aria-label="Активные способности">
+        <button id="shockwaveAbilityButton" class="run-ability-slot shockwave-slot hidden" type="button" aria-label="Ударная волна">
+            <span class="run-ability-icon" aria-hidden="true">◉</span>
+            <span class="run-ability-copy"><strong>УДАРНАЯ ВОЛНА</strong><small id="shockwaveAbilityStatus">ГОТОВО</small></span>
+            <kbd id="shockwaveAbilityKey">Q</kbd>
+        </button>
+        <button id="phaseDashAbilityButton" class="run-ability-slot dash-slot hidden" type="button" aria-label="Фазовый рывок">
+            <span class="run-ability-icon" aria-hidden="true">➤</span>
+            <span class="run-ability-copy"><strong>ФАЗОВЫЙ РЫВОК</strong><small id="phaseDashAbilityStatus">ГОТОВО</small></span>
+            <kbd id="phaseDashAbilityKey">E</kbd>
+        </button>
+    </div>
+
     <!-- Network Status HUD (shows during gameplay) -->
     <div id="netStatusHud" class="net-status-hud hidden">
         <div class="status-dot connecting" id="netDot"></div>
@@ -474,6 +487,9 @@
             <button id="pauseGraphicsSettingsBtn" class="settings-menu-button pause-settings-button" type="button" aria-haspopup="dialog">
                 ⚙ НАСТРОЙКИ ГРАФИКИ
             </button>
+            <button id="activeBindingsBtn" class="settings-menu-button pause-settings-button" type="button" aria-haspopup="dialog">
+                ⌨ НАЗНАЧИТЬ АКТИВКИ
+            </button>
             <div class="language-control">
                 <span class="language-control-icon" aria-hidden="true">🌐</span>
                 <label for="languageSelectPause">ЯЗЫК</label>
@@ -487,6 +503,36 @@
             </div>
         </div>
     </div>
+
+    <div id="activeBindingsOverlay" class="active-bindings-overlay hidden" aria-hidden="true">
+        <section class="active-bindings-panel" role="dialog" aria-modal="true" aria-labelledby="activeBindingsTitle">
+            <button id="closeActiveBindingsBtn" class="graphics-settings-close" type="button" aria-label="Закрыть назначение клавиш">×</button>
+            <span class="upgrade-kicker">УПРАВЛЕНИЕ · КАМПАНИЯ 1P</span>
+            <h2 id="activeBindingsTitle">КЛАВИШИ АКТИВОК</h2>
+            <p class="active-bindings-intro">Нажми кнопку действия, затем клавишу. Настройка сохраняется на этом устройстве.</p>
+            <div class="active-binding-row">
+                <span><strong>УДАРНАЯ ВОЛНА</strong><small>Отбрасывает врагов и астероиды</small></span>
+                <button class="active-binding-key" type="button" data-active-bind="shockwave">Q</button>
+            </div>
+            <div class="active-binding-row">
+                <span><strong>ФАЗОВЫЙ РЫВОК</strong><small>Короткая неуязвимость при рывке</small></span>
+                <button class="active-binding-key" type="button" data-active-bind="phaseDash">E</button>
+            </div>
+            <p id="activeBindingsStatus" class="active-bindings-status" aria-live="polite">Выбери действие и нажми подходящую клавишу.</p>
+            <button id="doneActiveBindingsBtn" class="graphics-settings-done" type="button">ГОТОВО</button>
+        </section>
+    </div>
+
+    <aside id="debugPanel" class="debug-panel hidden" aria-label="Режим отладки">
+        <header class="debug-panel-header">
+            <div><span class="debug-panel-kicker">SHIFT + Ё</span><strong>РЕЖИМ ОТЛАДКИ</strong></div>
+            <button id="closeDebugPanelBtn" type="button" aria-label="Закрыть режим отладки">×</button>
+        </header>
+        <button class="debug-action" type="button" data-debug-action="xp">+1000 XP · КАРТЫ УЛУЧШЕНИЙ</button>
+        <button class="debug-action" type="button" data-debug-action="boss">ПОЯВЛЕНИЕ БОССА</button>
+        <button class="debug-action" type="button" data-debug-action="clear">УБРАТЬ ВРАГОВ</button>
+        <button class="debug-action debug-god-toggle" type="button" data-debug-action="god">НЕУЯЗВИМОСТЬ: ВЫКЛ</button>
+    </aside>
 
     <div id="graphicsSettingsOverlay" class="graphics-settings-overlay hidden" aria-hidden="true">
         <section class="graphics-settings-panel" role="dialog" aria-modal="true" aria-labelledby="graphicsSettingsTitle">
@@ -557,5 +603,6 @@
     <script src="camera-world.js"></script>
     <script src="hangar-tech.js"></script>
     <script src="i18n.js"></script>
+    <script src="run-abilities.js"></script>
 </body>
 </html>
